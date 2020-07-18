@@ -1,0 +1,10 @@
+*/__pycache__
+*.pyc
+*.blend
+*.blend1
+*.txt
+*.sublime-project
+*.sublime-workspace
+*.vscode
+*.idea
+*.DS_STORE
