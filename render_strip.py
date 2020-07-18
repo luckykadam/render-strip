@@ -27,8 +27,6 @@ class RenderStripOperator(bpy.types.Operator):
     def post(self, dummy, thrd = None):
         self.shots.pop(0) 
         self.rendering = False
-        bpy.context.scene.render.filepath = self.path
-        bpy.context.scene.frame_set(self.frame)
 
     def cancelled(self, dummy, thrd = None):
         self.stop = True
@@ -63,7 +61,8 @@ class RenderStripOperator(bpy.types.Operator):
                 bpy.app.handlers.render_post.remove(self.post)
                 bpy.app.handlers.render_cancel.remove(self.cancelled)
                 bpy.context.window_manager.event_timer_remove(self._timer)
-
+                bpy.context.scene.frame_set(self.frame)
+                bpy.context.scene.render.filepath = self.path
                 return {"FINISHED"} 
 
             elif self.rendering is False:
@@ -77,7 +76,7 @@ class RenderStripOperator(bpy.types.Operator):
         return {"PASS_THROUGH"}
 
 
-def getcameras(self, context):
+def get_cameras(self, context):
     cameras = []
     for object in context.scene.objects:
         if object.type == "CAMERA":
@@ -86,10 +85,27 @@ def getcameras(self, context):
 
 
 class RsStrip(bpy.types.PropertyGroup):
-    enabled = bpy.props.BoolProperty(default=True)
-    cam = bpy.props.EnumProperty(items = getcameras)
-    start = bpy.props.IntProperty(min=1, default=1)
-    end = bpy.props.IntProperty(min=1, default=1)
+
+    def get_start(self):
+        return self.get("start", 1)
+
+    def set_start(self, value):
+        self["start"] = value
+        if self["start"] > self.get_end():
+            self.set_end(self["start"])
+
+    def get_end(self):
+        return self.get("end", 1)
+
+    def set_end(self, value):
+        self["end"] = value
+        if self["end"] < self.get_start():
+            self.set_start(self["end"])
+
+    enabled: bpy.props.BoolProperty(default=True)
+    cam: bpy.props.EnumProperty(items=get_cameras)
+    start: bpy.props.IntProperty(get=get_start, set=set_start, min=1)
+    end: bpy.props.IntProperty(get=get_end, set=set_end, min=1)
 
     def draw(self, context, layout):
         row = layout.row(align=True)
@@ -99,9 +115,9 @@ class RsStrip(bpy.types.PropertyGroup):
         row.prop(self, 'start', text="")
         row.prop(self, 'end', text="")
 
-# ui part
+
 class RsSettings(bpy.types.PropertyGroup):
-    strips = bpy.props.CollectionProperty(type=RsStrip)
+    strips: bpy.props.CollectionProperty(type=RsStrip)
 
 
 class RenderStripPanel(bpy.types.Panel):
