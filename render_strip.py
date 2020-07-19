@@ -112,10 +112,10 @@ class RsStrip(bpy.types.PropertyGroup):
         row.prop(self, 'enabled', text="")
         row.prop(self, 'cam', text="")
         row = layout.row(align=True)
-        row.prop(self, 'start', text="Start")
-        row.prop(self, 'end', text="End")
+        row.prop(self, 'start', text="")
+        row.prop(self, 'end', text="")
         row = layout.row(align=True)
-        row.prop(self, 'deleted', text="", icon="TRASH")
+        row.prop(self, 'deleted', text="", icon="TRASH", emboss=False)
 
 
 class RsSettings(bpy.types.PropertyGroup):
@@ -136,18 +136,32 @@ class RenderStripPanel(bpy.types.Panel):
             if not strip.deleted:
                 row = layout.row()
                 strip.draw(strip, row)
-        row = layout.row()
-        row.operator('rs.addstrip', text='Add Strip', icon='ADD')
+        row = layout.row(align=True)
+        row.operator('rs.newstrip', icon='ADD')
+        row.operator('rs.addcurrentstrip')
         row = layout.row()
         row.operator("rs.renderbutton", text='Render', icon='RENDER_ANIMATION')
 
 
-class OBJECT_OT_AddStrip(bpy.types.Operator):
-    bl_idname = "rs.addstrip"
-    bl_label = "Add Strip"
+class OBJECT_OT_NewStrip(bpy.types.Operator):
+    bl_idname = "rs.newstrip"
+    bl_label = "New Strip"
 
     def execute(self, context):
         strip = context.scene.rs_settings.strips.add()
+        return {'FINISHED'}
+
+
+class OBJECT_OT_AddCurrentStrip(bpy.types.Operator):
+    bl_idname = "rs.addcurrentstrip"
+    bl_label = "Add Current Strip"
+
+    def execute(self, context):
+        strip = context.scene.rs_settings.strips.add()
+        if context.scene.camera:
+            strip.cam = context.scene.camera.name 
+        strip.start = context.scene.frame_start
+        strip.end = context.scene.frame_end
         return {'FINISHED'}
 
 

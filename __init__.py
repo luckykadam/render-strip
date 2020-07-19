@@ -1,7 +1,7 @@
 import bpy
 from bpy.utils import register_class, unregister_class
 
-from .render_strip import RenderStripOperator, RsStrip, RsSettings, RenderStripPanel, OBJECT_OT_AddStrip, OBJECT_OT_RenderButton
+from .render_strip import RenderStripOperator, RsStrip, RsSettings, RenderStripPanel, OBJECT_OT_NewStrip, OBJECT_OT_AddCurrentStrip, OBJECT_OT_RenderButton
 
 bl_info = {
     "name": "Render Strip",
@@ -13,7 +13,7 @@ bl_info = {
             "Render camera strips",
 }
 
-classes = [RenderStripOperator, RsStrip, RsSettings, RenderStripPanel, OBJECT_OT_AddStrip, OBJECT_OT_RenderButton]
+classes = [RenderStripOperator, RsStrip, RsSettings, RenderStripPanel, OBJECT_OT_NewStrip, OBJECT_OT_AddCurrentStrip, OBJECT_OT_RenderButton]
 
 def menu_func(self, context):
     self.layout.operator(OBJECT_OT_RenderButton.bl_idname)
