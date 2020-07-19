@@ -18,8 +18,11 @@ class RenderStripOperator(bpy.types.Operator):
     shots = None
     stop = None
     rendering = None
-    frame = 1
-    path = "//"
+
+    # help revert to original
+    camera = None
+    frame = None
+    path = None
 
     def pre(self, dummy, thrd = None):
         self.rendering = True
@@ -41,6 +44,8 @@ class RenderStripOperator(bpy.types.Operator):
         if len(self.shots) < 0:
             self.report({"WARNING"}, 'No cameras defined')
             return {"FINISHED"}
+
+        self.camera = bpy.context.scene.camera
         self.frame = bpy.context.scene.frame_current
         self.path = bpy.context.scene.render.filepath
 
@@ -60,6 +65,8 @@ class RenderStripOperator(bpy.types.Operator):
                 bpy.app.handlers.render_post.remove(self.post)
                 bpy.app.handlers.render_cancel.remove(self.cancelled)
                 bpy.context.window_manager.event_timer_remove(self._timer)
+                # revert to original
+                bpy.context.scene.camera = self.camera
                 bpy.context.scene.frame_set(self.frame)
                 bpy.context.scene.render.filepath = self.path
                 return {"FINISHED"} 
