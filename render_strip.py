@@ -35,7 +35,7 @@ class RenderStripOperator(bpy.types.Operator):
         self.stop = False
         self.rendering = False
         scene = bpy.context.scene
-        strips = [(strip.cam,strip.start,strip.end) for strip in bpy.context.scene.rs_settings.strips if strip.enabled]
+        strips = [(strip.cam,strip.start,strip.end) for strip in bpy.context.scene.rs_settings.strips if strip.enabled and not strip.deleted]
         self.shots = [(cam,"{}.{}-{}".format(cam,start,end),frame) for (cam,start,end) in strips for frame in range(start,end+1)]
 
         if len(self.shots) < 0:
@@ -105,14 +105,17 @@ class RsStrip(bpy.types.PropertyGroup):
     cam: bpy.props.EnumProperty(items=get_cameras)
     start: bpy.props.IntProperty(get=get_start, set=set_start, min=1)
     end: bpy.props.IntProperty(get=get_end, set=set_end, min=1)
+    deleted: bpy.props.BoolProperty(default=False)
 
     def draw(self, context, layout):
         row = layout.row(align=True)
         row.prop(self, 'enabled', text="")
         row.prop(self, 'cam', text="")
         row = layout.row(align=True)
-        row.prop(self, 'start', text="")
-        row.prop(self, 'end', text="")
+        row.prop(self, 'start', text="Start")
+        row.prop(self, 'end', text="End")
+        row = layout.row(align=True)
+        row.prop(self, 'deleted', text="", icon="TRASH")
 
 
 class RsSettings(bpy.types.PropertyGroup):
@@ -128,13 +131,15 @@ class RenderStripPanel(bpy.types.Panel):
     bl_context = "render"
 
     def draw(self, context):
+        layout = self.layout
         for strip in context.scene.rs_settings.strips:
-            row = self.layout.row()
-            strip.draw(strip, row)
-        row = self.layout.row()
-        row.operator('rs.addstrip', text='Add Strip')
-        row = self.layout.row()
-        row.operator("rs.renderbutton", text='Render!')
+            if not strip.deleted:
+                row = layout.row()
+                strip.draw(strip, row)
+        row = layout.row()
+        row.operator('rs.addstrip', text='Add Strip', icon='ADD')
+        row = layout.row()
+        row.operator("rs.renderbutton", text='Render', icon='RENDER_ANIMATION')
 
 
 class OBJECT_OT_AddStrip(bpy.types.Operator):
