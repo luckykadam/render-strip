@@ -35,8 +35,8 @@ class RenderStripOperator(bpy.types.Operator):
         self.stop = False
         self.rendering = False
         scene = bpy.context.scene
-        strips = {strip.cam: (strip.start, strip.end+1) for strip in bpy.context.scene.rs_settings.strips if strip.enabled}
-        self.shots = [ (cam,frame) for cam,frame_range in strips.items() for frame in range(*frame_range)]
+        strips = [(strip.cam,strip.start,strip.end) for strip in bpy.context.scene.rs_settings.strips if strip.enabled]
+        self.shots = [(cam,"{}.{}-{}".format(cam,start,end),frame) for (cam,start,end) in strips for frame in range(start,end+1)]
 
         if len(self.shots) < 0:
             self.report({"WARNING"}, 'No cameras defined')
@@ -65,11 +65,11 @@ class RenderStripOperator(bpy.types.Operator):
                 return {"FINISHED"} 
 
             elif self.rendering is False:
-                cam,frame = self.shots[0]
+                cam,path,frame = self.shots[0]
                 bpy.context.scene.frame_set(frame)
                 sc = bpy.context.scene
                 sc.camera = bpy.data.objects[cam]
-                sc.render.filepath = self.path + cam + "/" + str(frame)
+                sc.render.filepath = self.path + path + "/" + str(frame)
                 bpy.ops.render.render("INVOKE_DEFAULT", write_still=True)
 
         return {"PASS_THROUGH"}
