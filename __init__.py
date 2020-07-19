@@ -22,7 +22,7 @@ def register():
     for cls in classes:
         register_class(cls)
 
-    bpy.types.WindowManager.rs_settings = bpy.props.PointerProperty(type=RsSettings)
+    bpy.types.Scene.rs_settings = bpy.props.PointerProperty(type=RsSettings)
     bpy.types.TOPBAR_MT_render.append(menu_func)
 
 def unregister():

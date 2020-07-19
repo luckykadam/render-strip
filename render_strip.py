@@ -35,8 +35,7 @@ class RenderStripOperator(bpy.types.Operator):
         self.stop = False
         self.rendering = False
         scene = bpy.context.scene
-        wm = bpy.context.window_manager
-        strips = {strip.cam: (strip.start, strip.end+1) for strip in bpy.context.window_manager.rs_settings.strips if strip.enabled}
+        strips = {strip.cam: (strip.start, strip.end+1) for strip in bpy.context.scene.rs_settings.strips if strip.enabled}
         self.shots = [ (cam,frame) for cam,frame_range in strips.items() for frame in range(*frame_range)]
 
         if len(self.shots) < 0:
@@ -129,9 +128,7 @@ class RenderStripPanel(bpy.types.Panel):
     bl_context = "render"
 
     def draw(self, context):
-        wm = context.window_manager
-        # row.prop(wm.rs_settings, "strips")
-        for strip in wm.rs_settings.strips:
+        for strip in context.scene.rs_settings.strips:
             row = self.layout.row()
             strip.draw(strip, row)
         row = self.layout.row()
@@ -145,8 +142,7 @@ class OBJECT_OT_AddStrip(bpy.types.Operator):
     bl_label = "Add Strip"
 
     def execute(self, context):
-        wm = context.window_manager
-        strip = wm.rs_settings.strips.add()
+        strip = context.scene.rs_settings.strips.add()
         return {'FINISHED'}
 
 
