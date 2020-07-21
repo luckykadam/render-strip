@@ -35,28 +35,32 @@ class RenderStripOperator(bpy.types.Operator):
         self.stop = True
 
     def execute(self, context):
-        self.stop = False
-        self.rendering = False
-        scene = bpy.context.scene
-        strips = [(strip.cam,strip.start,strip.end) for strip in bpy.context.scene.rs_settings.strips if strip.enabled and not strip.deleted]
-        self.shots = [(cam,"{}.{}-{}".format(cam,start,end),frame) for (cam,start,end) in strips for frame in range(start,end+1)]
+        try:
+            self.stop = False
+            self.rendering = False
+            scene = bpy.context.scene
+            strips = [(strip.cam,strip.start,strip.end) for strip in bpy.context.scene.rs_settings.strips if strip.enabled and not strip.deleted and bpy.context.scene.objects[strip.cam].type == "CAMERA"]
+            self.shots = [(cam,"{}.{}-{}".format(cam,start,end),frame) for (cam,start,end) in strips for frame in range(start,end+1)]
 
-        if len(self.shots) < 0:
-            self.report({"WARNING"}, 'No cameras defined')
-            return {"FINISHED"}
+            if len(self.shots) < 0:
+                self.report({"WARNING"}, 'No cameras defined')
+                return {"FINISHED"}
 
-        self.camera = bpy.context.scene.camera
-        self.frame = bpy.context.scene.frame_current
-        self.path = bpy.context.scene.render.filepath
+            self.camera = bpy.context.scene.camera
+            self.frame = bpy.context.scene.frame_current
+            self.path = bpy.context.scene.render.filepath
 
-        bpy.app.handlers.render_pre.append(self.pre)
-        bpy.app.handlers.render_post.append(self.post)
-        bpy.app.handlers.render_cancel.append(self.cancelled)
+            bpy.app.handlers.render_pre.append(self.pre)
+            bpy.app.handlers.render_post.append(self.post)
+            bpy.app.handlers.render_cancel.append(self.cancelled)
 
-        self._timer = bpy.context.window_manager.event_timer_add(0.5, window=bpy.context.window)
-        bpy.context.window_manager.modal_handler_add(self)
+            self._timer = bpy.context.window_manager.event_timer_add(0.5, window=bpy.context.window)
+            bpy.context.window_manager.modal_handler_add(self)
 
-        return {"RUNNING_MODAL"}
+            return {"RUNNING_MODAL"}
+        except Exception as e:
+            ShowMessageBox(message="Invalid camera in strips")
+            return {"CANCELLED"}
 
     def modal(self, context, event):
         if event.type == 'TIMER':
