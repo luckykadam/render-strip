@@ -121,7 +121,9 @@ class RsStrip(bpy.types.PropertyGroup):
     def draw(self, context, layout):
         row = layout.row(align=True)
         row.prop(self, 'enabled', text="")
+        row = layout.row(align=True)
         row.prop(self, 'cam', text="")
+        row.scale_x = 2
         row = layout.row(align=True)
         row.prop(self, 'start', text="")
         row.prop(self, 'end', text="")
