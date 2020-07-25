@@ -1,5 +1,6 @@
 import bpy
 import os
+from collections import OrderedDict
 
 def ShowMessageBox(message = "", title = "Message Box", icon = 'INFO'):
 
@@ -15,23 +16,24 @@ class RenderStripOperator(bpy.types.Operator):
     bl_label = "Render Strip"
 
     _timer = None
-    shots = None
+    strips = None
     stop = None
     rendering = None
 
     # help revert to original
     camera = None
-    frame = None
+    frame_start = None
+    frame_end = None
     path = None
 
-    def pre(self, dummy, thrd = None):
+    def _init(self, dummy, thrd = None):
         self.rendering = True
 
-    def post(self, dummy, thrd = None):
-        self.shots.pop(0) 
+    def _complete(self, dummy, thrd = None):
+        self.strips.popitem(last=False)
         self.rendering = False
 
-    def cancelled(self, dummy, thrd = None):
+    def _cancel(self, dummy, thrd = None):
         self.stop = True
 
     def execute(self, context):
@@ -39,49 +41,57 @@ class RenderStripOperator(bpy.types.Operator):
             self.stop = False
             self.rendering = False
             scene = bpy.context.scene
-            strips = [(strip.cam,strip.start,strip.end) for strip in bpy.context.scene.rs_settings.strips if strip.enabled and not strip.deleted and bpy.context.scene.objects[strip.cam].type == "CAMERA"]
-            self.shots = [(cam,"{}.{}-{}".format(cam,start,end),frame) for (cam,start,end) in strips for frame in range(start,end+1)]
+            if any(scene.objects[strip.cam].type != "CAMERA" for strip in scene.rs_settings.strips):
+                raise Exception("Invalid Camera in strips!")
+            self.strips = OrderedDict({
+                "{}.{}-{}".format(strip.cam,strip.start,strip.end): (strip.cam, strip.start,strip.end)
+                for strip in bpy.context.scene.rs_settings.strips
+                if strip.enabled and not strip.deleted and bpy.context.scene.objects[strip.cam].type == "CAMERA"
+            })
 
-            if len(self.shots) < 0:
-                self.report({"WARNING"}, 'No cameras defined')
-                return {"FINISHED"}
+            if len(self.strips) < 0:
+                raise Exception("No strip defined")
 
-            self.camera = bpy.context.scene.camera
-            self.frame = bpy.context.scene.frame_current
-            self.path = bpy.context.scene.render.filepath
+            self.camera = scene.camera
+            self.frame_start = scene.frame_start
+            self.frame_end = scene.frame_end
+            self.path = scene.render.filepath
 
-            bpy.app.handlers.render_pre.append(self.pre)
-            bpy.app.handlers.render_post.append(self.post)
-            bpy.app.handlers.render_cancel.append(self.cancelled)
+            bpy.app.handlers.render_init.append(self._init)
+            bpy.app.handlers.render_complete.append(self._complete)
+            bpy.app.handlers.render_cancel.append(self._cancel)
 
             self._timer = bpy.context.window_manager.event_timer_add(0.5, window=bpy.context.window)
             bpy.context.window_manager.modal_handler_add(self)
 
             return {"RUNNING_MODAL"}
         except Exception as e:
-            ShowMessageBox(message="Invalid camera in strips")
+            self.report({"WARNING", e.message})
+            ShowMessageBox(message=e.message)
             return {"CANCELLED"}
 
     def modal(self, context, event):
         if event.type == 'TIMER':
-            if self.stop or not self.shots :
-                bpy.app.handlers.render_pre.remove(self.pre)
-                bpy.app.handlers.render_post.remove(self.post)
-                bpy.app.handlers.render_cancel.remove(self.cancelled)
+            if self.stop or not self.strips:
+                bpy.app.handlers.render_init.remove(self._init)
+                bpy.app.handlers.render_complete.remove(self._complete)
+                bpy.app.handlers.render_cancel.remove(self._cancel)
                 bpy.context.window_manager.event_timer_remove(self._timer)
                 # revert to original
                 bpy.context.scene.camera = self.camera
-                bpy.context.scene.frame_set(self.frame)
+                bpy.context.scene.frame_start = self.frame_start
+                bpy.context.scene.frame_end = self.frame_end
                 bpy.context.scene.render.filepath = self.path
                 return {"FINISHED"} 
 
             elif self.rendering is False:
-                cam,path,frame = self.shots[0]
-                bpy.context.scene.frame_set(frame)
+                path,(cam, frame_start, frame_end) = list(self.strips.items())[0]
                 sc = bpy.context.scene
                 sc.camera = bpy.data.objects[cam]
-                sc.render.filepath = self.path + path + "/" + str(frame)
-                bpy.ops.render.render("INVOKE_DEFAULT", write_still=True)
+                sc.frame_start = frame_start
+                sc.frame_end = frame_end
+                sc.render.filepath = self.path + path + "/"
+                bpy.ops.render.render("INVOKE_DEFAULT", animation=True)
 
         return {"PASS_THROUGH"}
 
