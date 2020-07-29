@@ -192,19 +192,9 @@ class OBJECT_OT_RenderButton(bpy.types.Operator):
     bl_idname = "rs.renderbutton"
     bl_label = "Render Strip"
 
-    #@classmethod
-    #def poll(cls, context):
-    #    return True
- 
     def execute(self, context):
         if bpy.context.scene.render.filepath is None or len(bpy.context.scene.render.filepath)<1:
             self.report({"ERROR"}, 'Output path not defined. Please, define the output path on the render settings panel')
-            return {"FINISHED"}
-
-        animation_formats = [ 'FFMPEG', 'AVI_JPEG', 'AVI_RAW', 'FRAMESERVER' ]
-
-        if bpy.context.scene.render.image_settings.file_format in animation_formats:
-            self.report({"ERROR"}, 'Animation formats are not supported. Yet :)')
             return {"FINISHED"}
 
         bpy.ops.render.renderstrip()
