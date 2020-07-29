@@ -5,7 +5,7 @@ Author: [Lucky Kadam](https://twitter.com/luckykadam94)
 
 ## Installation
 
-1. Download add-on [release](https://github.com/luckykadam/render-strip/releases/download/0.1.0/render-strip-0.1.0.zip) (do not unzip).
+1. Download add-on [archive](https://github.com/luckykadam/render-strip/archive/master.zip) (do not unzip).
 2. In blender, go to: Edit -> Preferences -> Add-ons -> Install.
 3. Select the downloaded file and click on -> Install Add-on.
 4. Enable it by clicking on checkbox.
