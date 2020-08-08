@@ -121,11 +121,11 @@ class RsStrip(bpy.types.PropertyGroup):
         if self["end"] < self.get_start():
             self.set_start(self["end"])
 
-    enabled: bpy.props.BoolProperty(default=True)
-    cam: bpy.props.EnumProperty(items=get_cameras)
-    start: bpy.props.IntProperty(get=get_start, set=set_start, min=1)
-    end: bpy.props.IntProperty(get=get_end, set=set_end, min=1)
-    deleted: bpy.props.BoolProperty(default=False)
+    enabled: bpy.props.BoolProperty(name="Enable", default=True)
+    cam: bpy.props.EnumProperty(name="Camera", items=get_cameras)
+    start: bpy.props.IntProperty(name="Start Frame", get=get_start, set=set_start, min=1)
+    end: bpy.props.IntProperty(name="End Frame", get=get_end, set=set_end, min=1)
+    deleted: bpy.props.BoolProperty(name="Delete Strip", default=False)
 
     def draw(self, context, layout):
         row = layout.row(align=True)
@@ -162,10 +162,11 @@ class RenderStripPanel(bpy.types.Panel):
         row.operator('rs.newstrip', icon='ADD')
         row.operator('rs.addcurrentstrip')
         row = layout.row()
-        row.operator("rs.renderbutton", text='Render', icon='RENDER_ANIMATION')
+        row.operator("rs.renderbutton", text='Render')
 
 
 class OBJECT_OT_NewStrip(bpy.types.Operator):
+    """Add a new strip"""
     bl_idname = "rs.newstrip"
     bl_label = "New Strip"
 
@@ -175,6 +176,7 @@ class OBJECT_OT_NewStrip(bpy.types.Operator):
 
 
 class OBJECT_OT_AddCurrentStrip(bpy.types.Operator):
+    """Add strip from current camera, start-end frame"""
     bl_idname = "rs.addcurrentstrip"
     bl_label = "Add Current Strip"
 
@@ -188,6 +190,7 @@ class OBJECT_OT_AddCurrentStrip(bpy.types.Operator):
 
 
 class OBJECT_OT_RenderButton(bpy.types.Operator):
+    """Render all enabled strips"""
     bl_idname = "rs.renderbutton"
     bl_label = "Render Strip"
 
