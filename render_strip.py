@@ -41,7 +41,7 @@ class RenderStripOperator(bpy.types.Operator):
             self.stop = False
             self.rendering = False
             scene = bpy.context.scene
-            if any(scene.objects[strip.cam].type != "CAMERA" for strip in scene.rs_settings.strips):
+            if any(strip.cam not in scene.objects or scene.objects[strip.cam].type != "CAMERA" for strip in scene.rs_settings.strips):
                 raise Exception("Invalid Camera in strips!")
             self.strips = OrderedDict({
                 "{}.{}-{}".format(strip.cam,strip.start,strip.end): (strip.cam, strip.start,strip.end)
@@ -66,8 +66,7 @@ class RenderStripOperator(bpy.types.Operator):
 
             return {"RUNNING_MODAL"}
         except Exception as e:
-            self.report({"WARNING", e.message})
-            ShowMessageBox(message=e.message)
+            ShowMessageBox(icon="ERROR", message=str(e))
             return {"CANCELLED"}
 
     def modal(self, context, event):
@@ -194,7 +193,7 @@ class OBJECT_OT_RenderButton(bpy.types.Operator):
 
     def execute(self, context):
         if bpy.context.scene.render.filepath is None or len(bpy.context.scene.render.filepath)<1:
-            self.report({"ERROR"}, 'Output path not defined. Please, define the output path on the render settings panel')
+            ShowMessageBox(icon="ERROR", message="Output path not defined. Please, define the output path on the render settings panel")
             return {"FINISHED"}
 
         bpy.ops.render.renderstrip()
