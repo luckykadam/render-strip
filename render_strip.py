@@ -42,7 +42,7 @@ class RenderStripOperator(bpy.types.Operator):
             self.rendering = False
             scene = bpy.context.scene
             if any(strip.cam not in scene.objects or scene.objects[strip.cam].type != "CAMERA" for strip in scene.rs_settings.strips if not strip.deleted):
-                raise Exception("Invalid Camera in strips: {}".format(strip.cam))
+                raise Exception("Invalid Camera in strips!")
             self.strips = OrderedDict({
                 "{}.{}-{}".format(strip.cam,strip.start,strip.end): (strip.cam, strip.start,strip.end)
                 for strip in bpy.context.scene.rs_settings.strips
