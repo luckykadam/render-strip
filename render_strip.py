@@ -41,14 +41,14 @@ class RenderStripOperator(bpy.types.Operator):
             self.stop = False
             self.rendering = False
             scene = bpy.context.scene
-            if any(strip.cam not in scene.objects or scene.objects[strip.cam].type != "CAMERA" for strip in scene.rs_settings.strips if not strip.deleted):
+            active_strips = [strip for strip in scene.rs_settings.strips if not strip.deleted and strip.enabled]
+            if any(strip.cam not in scene.objects or scene.objects[strip.cam].type != "CAMERA" for strip in active_strips):
                 raise Exception("Invalid Camera in strips!")
-            if not all(strip.name for strip in scene.rs_settings.strips if strip.named):
+            if not all(strip.name for strip in active_strips if strip.named):
                 raise Exception("Invalid Name in named strips!")
             self.strips = OrderedDict({
                 "{}.{}-{}".format(strip.cam,strip.start,strip.end) if not strip.named else strip.name : (strip.cam, strip.start,strip.end)
-                for strip in bpy.context.scene.rs_settings.strips
-                if strip.enabled and not strip.deleted and bpy.context.scene.objects[strip.cam].type == "CAMERA"
+                for strip in active_strips
             })
 
             if len(self.strips) < 0:
