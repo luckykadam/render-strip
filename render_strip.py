@@ -43,8 +43,10 @@ class RenderStripOperator(bpy.types.Operator):
             scene = bpy.context.scene
             if any(strip.cam not in scene.objects or scene.objects[strip.cam].type != "CAMERA" for strip in scene.rs_settings.strips if not strip.deleted):
                 raise Exception("Invalid Camera in strips!")
+            if not all(strip.name for strip in scene.rs_settings.strips if strip.named):
+                raise Exception("Invalid Name in named strips!")
             self.strips = OrderedDict({
-                "{}.{}-{}".format(strip.cam,strip.start,strip.end): (strip.cam, strip.start,strip.end)
+                "{}.{}-{}".format(strip.cam,strip.start,strip.end) if not strip.named else strip.name : (strip.cam, strip.start,strip.end)
                 for strip in bpy.context.scene.rs_settings.strips
                 if strip.enabled and not strip.deleted and bpy.context.scene.objects[strip.cam].type == "CAMERA"
             })
@@ -122,6 +124,8 @@ class RsStrip(bpy.types.PropertyGroup):
             self.set_start(self["end"])
 
     enabled: bpy.props.BoolProperty(name="Enable", default=True)
+    named: bpy.props.BoolProperty(name="Custom Name", default=False)
+    name: bpy.props.StringProperty(name="Name")
     cam: bpy.props.EnumProperty(name="Camera", items=get_cameras)
     start: bpy.props.IntProperty(name="Start Frame", get=get_start, set=set_start, min=1)
     end: bpy.props.IntProperty(name="End Frame", get=get_end, set=set_end, min=1)
@@ -131,13 +135,19 @@ class RsStrip(bpy.types.PropertyGroup):
         row = layout.row(align=True)
         row.prop(self, 'enabled', text="")
         row = layout.row(align=True)
-        row.prop(self, 'cam', text="")
-        row.scale_x = 2
+        row.prop(self, 'named', text="", icon="OUTLINER_DATA_GP_LAYER")
+        if self.named:
+            row = layout.row(align=True)
+            row.prop(self, 'name', text="")
+        else:
+            cam_field = layout.row(align=True)
+            cam_field.prop(self, 'cam', text="")
+            cam_field.scale_x = 2
+            row = layout.row(align=True)
+            row.prop(self, 'start', text="")
+            row.prop(self, 'end', text="")
         row = layout.row(align=True)
-        row.prop(self, 'start', text="")
-        row.prop(self, 'end', text="")
-        row = layout.row(align=True)
-        row.prop(self, 'deleted', text="", icon="TRASH", emboss=False)
+        row.prop(self, 'deleted', text="", icon="X")
 
 
 class RsSettings(bpy.types.PropertyGroup):
@@ -154,6 +164,8 @@ class RenderStripPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+        row = layout.row(align=True)
+        row.prop(context.scene.render, "filepath")
         for strip in context.scene.rs_settings.strips:
             if not strip.deleted:
                 row = layout.row()
