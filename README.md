@@ -5,7 +5,7 @@ Author: [Lucky Kadam](https://twitter.com/luckykadam94)
 
 ## Installation
 
-1. Download add-on [archive](https://github.com/luckykadam/render-strip/archive/master.zip) (do not unzip).
+1. Download from [Gumroad](https://gumroad.com/l/renderstrip) for free or Github latest [release](https://github.com/luckykadam/render-strip/archive/v0.1.1.zip) (do not unzip).
 2. In blender, go to: Edit -> Preferences -> Add-ons -> Install.
 3. Select the downloaded file and click on -> Install Add-on.
 4. Enable it by clicking on checkbox.
@@ -19,8 +19,9 @@ You should now see Render Strip tab in Render Properties.
 ## Usage
 
 1. Create new strip by clicking on New Strip.
-2. Specify the camera, start frame and end frame.
-3. Hit Render.
+2. Specify the camera, start frame and end frame. (Optionally name the strip by clicking on `pencil` icon).
+3. Select the output path.
+4. Hit Render.
 
 <img width=280 src="images/strip.png">
 
