@@ -158,21 +158,15 @@ class RsSettings(bpy.types.PropertyGroup):
     strips: bpy.props.CollectionProperty(type=RsStrip)
 
 
-class RenderStripPanel(bpy.types.Panel):
+class RENDER_PT_render_strip(bpy.types.Panel):
     """Creates a Panel in the scene context of the properties editor"""
     bl_label = "Render Strip"
-    bl_idname = "SCENE_PT_layout"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "render"
 
     def draw(self, context):
         layout = self.layout
-        col = layout.column(align=True)
-        col.use_property_split = True
-        col.use_property_decorate = False
-        col.prop(context.scene.render, "filepath")
-        col.prop(context.scene.rs_settings, 'separate_dir')
         for strip in context.scene.rs_settings.strips:
             if not strip.deleted:
                 row = layout.row()
@@ -182,6 +176,23 @@ class RenderStripPanel(bpy.types.Panel):
         row.operator('rs.addcurrentstrip')
         row = layout.row()
         row.operator("rs.renderbutton", text='Render')
+
+
+class RENDER_PT_render_strip_settings(bpy.types.Panel):
+    bl_label = "Output Settings"
+    bl_parent_id = "RENDER_PT_render_strip"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "render"
+    
+    def draw(self, context):
+        layout = self.layout
+        col = layout.column(align=True)
+        col.use_property_split = True
+        col.use_property_decorate = False
+        col.prop(context.scene.render, "filepath")
+        col.prop(context.scene.rs_settings, 'separate_dir')
 
 
 class OBJECT_OT_NewStrip(bpy.types.Operator):
