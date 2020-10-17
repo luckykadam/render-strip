@@ -23,7 +23,7 @@ You should now see Render Strip tab in Render Properties.
 3. Select the output path.
 4. Hit Render.
 
-<img width=280 src="images/strip.png">
+<img width=320 src="images/strips.png">
 
 ## Resources
 
