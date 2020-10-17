@@ -9,8 +9,7 @@ bl_info = {
     "blender": (2, 80, 0),
     "author" : "Lucky Kadam <luckykadam94@gmail.com>",
     "version" : (0, 1, 0),
-    "description" :
-            "Render camera strips",
+    "description" : "Render camera strips",
 }
 
 classes = [RenderStripOperator, RsStrip, RsSettings, RenderStripPanel, OBJECT_OT_NewStrip, OBJECT_OT_AddCurrentStrip, OBJECT_OT_RenderButton]

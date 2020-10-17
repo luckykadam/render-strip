@@ -25,6 +25,7 @@ class RenderStripOperator(bpy.types.Operator):
     frame_start = None
     frame_end = None
     path = None
+    separate_dir = None
 
     def _init(self, dummy, thrd = None):
         self.rendering = True
@@ -58,6 +59,7 @@ class RenderStripOperator(bpy.types.Operator):
             self.frame_start = scene.frame_start
             self.frame_end = scene.frame_end
             self.path = scene.render.filepath
+            self.separate_dir = scene.rs_settings.separate_dir
 
             bpy.app.handlers.render_init.append(self._init)
             bpy.app.handlers.render_complete.append(self._complete)
@@ -91,7 +93,8 @@ class RenderStripOperator(bpy.types.Operator):
                 sc.camera = bpy.data.objects[cam]
                 sc.frame_start = frame_start
                 sc.frame_end = frame_end
-                sc.render.filepath = self.path + path + "/"
+                sc.render.filepath = self.path + path
+                sc.render.filepath += "/" if self.separate_dir else "."
                 bpy.ops.render.render("INVOKE_DEFAULT", animation=True)
 
         return {"PASS_THROUGH"}
@@ -151,6 +154,7 @@ class RsStrip(bpy.types.PropertyGroup):
 
 
 class RsSettings(bpy.types.PropertyGroup):
+    separate_dir: bpy.props.BoolProperty(name="Separate Directories", description="Create separate directories for each strip", default=True)
     strips: bpy.props.CollectionProperty(type=RsStrip)
 
 
@@ -164,8 +168,11 @@ class RenderStripPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        row = layout.row(align=True)
-        row.prop(context.scene.render, "filepath")
+        col = layout.column(align=True)
+        col.use_property_split = True
+        col.use_property_decorate = False
+        col.prop(context.scene.render, "filepath")
+        col.prop(context.scene.rs_settings, 'separate_dir')
         for strip in context.scene.rs_settings.strips:
             if not strip.deleted:
                 row = layout.row()
