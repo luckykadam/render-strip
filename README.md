@@ -5,7 +5,7 @@ Author: [Lucky Kadam](https://twitter.com/luckykadam94)
 
 ## Installation
 
-1. Download from [Gumroad](https://gumroad.com/l/renderstrip) for free or Github latest [release](https://github.com/luckykadam/render-strip/archive/v0.2.0.zip) (do not unzip).
+1. Download from [Gumroad](https://gumroad.com/l/renderstrip) for free or Github latest [release](https://github.com/luckykadam/render-strip/archive/v0.2.zip) (do not unzip).
 2. In blender, go to: Edit -> Preferences -> Add-ons -> Install.
 3. Select the downloaded file and click on -> Install Add-on.
 4. Enable it by clicking on checkbox.
