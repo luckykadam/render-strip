@@ -25,6 +25,10 @@ You should now see Render Strip tab in Render Properties.
 
 <img width=320 src="images/strips.png">
 
+5. For more control on ouptut, take a look at output settings sub-panel.
+
+<img width=280 src="images/output settings.png">
+
 ## Resources
 
 * Demonstration video on [Youtube](https://youtu.be/4OC895dGW0g)
