@@ -15,7 +15,7 @@ bl_info = {
 classes = [RenderStripOperator, RsStrip, RsSettings, RENDER_UL_render_strip_list, RENDER_PT_render_strip, RENDER_PT_render_strip_detail, RENDER_PT_render_strip_settings, OBJECT_OT_NewStrip, OBJECT_OT_DeleteStrip, OBJECT_OT_PlayStrip, OBJECT_OT_RenderStrip]
 
 def menu_func(self, context):
-    self.layout.operator(OBJECT_OT_RenderButton.bl_idname, icon="RENDER_ANIMATION")
+    self.layout.operator(OBJECT_OT_RenderStrip.bl_idname, icon="RENDER_ANIMATION")
 
 def register():
     for cls in classes:

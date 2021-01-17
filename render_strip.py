@@ -188,8 +188,11 @@ class RENDER_PT_render_strip(bpy.types.Panel):
         sub.operator('rs.delstrip', text="", icon='REMOVE')
         sub = col.column(align=True)
         sub.operator('rs.playstrip', text="", icon='PLAY')
-        sub = col.column(align=True)
-        sub.operator('rs.renderstrip', text="", icon='RENDER_ANIMATION')
+        # sub = col.column(align=True)
+        # sub.operator('rs.renderstrip', text="", icon='RENDER_ANIMATION')
+
+        row = layout.row()
+        row.operator('rs.renderstrip', text="Render")
 
 
 class RENDER_PT_render_strip_detail(bpy.types.Panel):
