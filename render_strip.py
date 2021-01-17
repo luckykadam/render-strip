@@ -156,6 +156,8 @@ class RsStrip(bpy.types.PropertyGroup):
         row = layout.row(align=True)
         row.prop(self, 'enabled', text="")
         row.label(text=self.get_name())
+        row.label(text=self.cam)
+        row.label(text="{}-{}".format(self.start,self.end))
 
 
 class RsSettings(bpy.types.PropertyGroup):
@@ -170,7 +172,6 @@ class RENDER_UL_render_strip_list(bpy.types.UIList):
 
 
 class RENDER_PT_render_strip(bpy.types.Panel):
-    """Creates a Panel in the scene context of the properties editor"""
     bl_label = "Render Strip"
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -178,6 +179,7 @@ class RENDER_PT_render_strip(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+
         row = layout.row()
         row.template_list("RENDER_UL_render_strip_list", "", context.scene.rs_settings, "strips", context.scene.rs_settings, "active_index")
         col = row.column()
@@ -186,17 +188,27 @@ class RENDER_PT_render_strip(bpy.types.Panel):
         sub.operator('rs.delstrip', text="", icon='REMOVE')
         sub = col.column(align=True)
         sub.operator('rs.playstrip', text="", icon='PLAY')
+        sub = col.column(align=True)
+        sub.operator('rs.renderstrip', text="", icon='RENDER_ANIMATION')
 
+
+class RENDER_PT_render_strip_detail(bpy.types.Panel):
+    bl_label = "Strip"
+    bl_parent_id = "RENDER_PT_render_strip"
+    bl_options = {'DRAW_BOX'}
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "render"
+
+    def draw(self, context):
+        layout = self.layout
         index = context.scene.rs_settings.active_index
         strips = context.scene.rs_settings.strips
-
         if 0<=index and index<len(strips):
             active_strip = strips[index]
             active_strip.draw(context, layout.column())
-
-        layout.separator()
-        row = layout.row(align=True)
-        row.operator("rs.renderstrip", text='Render')
+        else:
+            layout.label(text="No active strip")
 
 
 class RENDER_PT_render_strip_settings(bpy.types.Panel):
