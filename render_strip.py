@@ -138,16 +138,15 @@ class RsStrip(bpy.types.PropertyGroup):
 
     def draw(self, context, layout):
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         # custom name
         row = layout.row(align=True, heading="Custom Name")
-        row.use_property_decorate = False
         sub = row.row(align=True)
         sub.prop(self, "named", text="")
         subsub = sub.row(align=True)
         subsub.active = self.named
         subsub.prop(self, "name", text="")
-        row.prop_decorator(self, "name")
 
         layout.prop(self, 'cam')
         layout.prop(self, 'start')
