@@ -48,7 +48,7 @@ class RenderStripOperator(bpy.types.Operator):
             if not all(strip.name for strip in active_strips if strip.named):
                 raise Exception("Invalid Name in named strips!")
             self.strips = OrderedDict({
-                "{}.{}-{}".format(strip.cam,strip.start,strip.end) if not strip.named else strip.name : (strip.cam, strip.start,strip.end)
+                strip.get_name(): (strip.cam, strip.start,strip.end)
                 for strip in active_strips
             })
 
@@ -133,6 +133,9 @@ class RsStrip(bpy.types.PropertyGroup):
     start: bpy.props.IntProperty(name="Start Frame", get=get_start, set=set_start, min=1)
     end: bpy.props.IntProperty(name="End Frame", get=get_end, set=set_end, min=1)
 
+    def get_name(self):
+        return self.name if self.named else "{}.{}-{}".format(self.cam,self.start,self.end)
+
     def draw(self, context, layout):
         layout.use_property_split = True
 
@@ -153,10 +156,7 @@ class RsStrip(bpy.types.PropertyGroup):
     def draw_list_item(self, context, layout):
         row = layout.row(align=True)
         row.prop(self, 'enabled', text="")
-        if self.named:
-            row.label(text=self.name)
-        else:
-            row.label(text="{}.{}-{}".format(self.cam,self.start,self.end))
+        row.label(text=self.get_name())
 
 
 class RsSettings(bpy.types.PropertyGroup):
