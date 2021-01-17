@@ -181,9 +181,12 @@ class RENDER_PT_render_strip(bpy.types.Panel):
         layout = self.layout
         row = layout.row()
         row.template_list("RENDER_UL_render_strip_list", "", context.scene.rs_settings, "strips", context.scene.rs_settings, "active_index")
-        col = row.column(align=True)
-        col.operator('rs.newstrip', text="", icon='ADD')
-        col.operator('rs.delstrip', text="", icon='REMOVE')
+        col = row.column()
+        sub = col.column(align=True)
+        sub.operator('rs.newstrip', text="", icon='ADD')
+        sub.operator('rs.delstrip', text="", icon='REMOVE')
+        sub = col.column(align=True)
+        sub.operator('rs.playstrip', text="", icon='PLAY')
 
         index = context.scene.rs_settings.active_index
         strips = context.scene.rs_settings.strips
@@ -194,7 +197,7 @@ class RENDER_PT_render_strip(bpy.types.Panel):
 
         layout.separator()
         row = layout.row(align=True)
-        row.operator("rs.renderbutton", text='Render')
+        row.operator("rs.renderstrip", text='Render')
 
 
 class RENDER_PT_render_strip_settings(bpy.types.Panel):
@@ -221,6 +224,7 @@ class OBJECT_OT_NewStrip(bpy.types.Operator):
 
     def execute(self, context):
         strip = context.scene.rs_settings.strips.add()
+        context.scene.rs_settings.active_index = len(context.scene.rs_settings.strips)-1
         if context.scene.camera:
             strip.cam = context.scene.camera.name 
         strip.start = context.scene.frame_start
@@ -237,21 +241,46 @@ class OBJECT_OT_DeleteStrip(bpy.types.Operator):
     def poll(cls, context):
         index = context.scene.rs_settings.active_index
         strips = context.scene.rs_settings.strips
-
         return 0<=index and index<len(strips)
 
     def execute(self, context):
         index = context.scene.rs_settings.active_index
         strips = context.scene.rs_settings.strips
-        strip = context.scene.rs_settings.strips.remove(context.scene.rs_settings.active_index)
+        strips.remove(index)
         if index==len(strips):
             context.scene.rs_settings.active_index = index-1
         return {'FINISHED'}
 
 
-class OBJECT_OT_RenderButton(bpy.types.Operator):
+class OBJECT_OT_PlayStrip(bpy.types.Operator):
+    """Play the selected strip"""
+    bl_idname = "rs.playstrip"
+    bl_label = "Play Strip"
+
+    @classmethod
+    def poll(cls, context):
+        index = context.scene.rs_settings.active_index
+        strips = context.scene.rs_settings.strips
+        return 0<=index and index<len(strips)
+
+    def execute(self, context):
+        index = context.scene.rs_settings.active_index
+        strips = context.scene.rs_settings.strips
+        strip = strips[index]
+        if strip.cam:
+            sc = bpy.context.scene
+            sc.camera = bpy.data.objects[strip.cam]
+            sc.frame_start = strip.start
+            sc.frame_end = strip.end
+            sc.frame_current = strip.start
+            return {'FINISHED'}
+        else:
+            return {'CANELLED'}
+
+
+class OBJECT_OT_RenderStrip(bpy.types.Operator):
     """Render all enabled strips"""
-    bl_idname = "rs.renderbutton"
+    bl_idname = "rs.renderstrip"
     bl_label = "Render Strip"
 
     def execute(self, context):
