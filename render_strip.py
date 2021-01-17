@@ -42,7 +42,7 @@ class RenderStripOperator(bpy.types.Operator):
             self.stop = False
             self.rendering = False
             scene = bpy.context.scene
-            active_strips = [strip for strip in scene.rs_settings.strips if not strip.deleted and strip.enabled]
+            active_strips = [strip for strip in scene.rs_settings.strips if strip.enabled]
             if any(strip.cam not in scene.objects or scene.objects[strip.cam].type != "CAMERA" for strip in active_strips):
                 raise Exception("Invalid Camera in strips!")
             if not all(strip.name for strip in active_strips if strip.named):
@@ -128,34 +128,46 @@ class RsStrip(bpy.types.PropertyGroup):
 
     enabled: bpy.props.BoolProperty(name="Enable", default=True)
     named: bpy.props.BoolProperty(name="Custom Name", default=False)
-    name: bpy.props.StringProperty(name="Name")
+    name: bpy.props.StringProperty(name="Name", default="strip")
     cam: bpy.props.EnumProperty(name="Camera", items=get_cameras)
     start: bpy.props.IntProperty(name="Start Frame", get=get_start, set=set_start, min=1)
     end: bpy.props.IntProperty(name="End Frame", get=get_end, set=set_end, min=1)
-    deleted: bpy.props.BoolProperty(name="Delete Strip", default=False)
 
     def draw(self, context, layout):
+        layout.use_property_split = True
+
+        # custom name
+        row = layout.row(align=True, heading="Custom Name")
+        row.use_property_decorate = False
+        sub = row.row(align=True)
+        sub.prop(self, "named", text="")
+        subsub = sub.row(align=True)
+        subsub.active = self.named
+        subsub.prop(self, "name", text="")
+        row.prop_decorator(self, "name")
+
+        layout.prop(self, 'cam')
+        layout.prop(self, 'start')
+        layout.prop(self, 'end')
+
+    def draw_list_item(self, context, layout):
         row = layout.row(align=True)
         row.prop(self, 'enabled', text="")
-        row = layout.row(align=True)
-        row.prop(self, 'named', text="", icon="OUTLINER_DATA_GP_LAYER")
         if self.named:
-            row = layout.row(align=True)
-            row.prop(self, 'name', text="")
+            row.label(text=self.name)
         else:
-            cam_field = layout.row(align=True)
-            cam_field.prop(self, 'cam', text="")
-            cam_field.scale_x = 2
-            row = layout.row(align=True)
-            row.prop(self, 'start', text="")
-            row.prop(self, 'end', text="")
-        row = layout.row(align=True)
-        row.prop(self, 'deleted', text="", icon="X")
+            row.label(text="{}.{}-{}".format(self.cam,self.start,self.end))
 
 
 class RsSettings(bpy.types.PropertyGroup):
     separate_dir: bpy.props.BoolProperty(name="Separate Directories", description="Create separate directories for each strip", default=True)
     strips: bpy.props.CollectionProperty(type=RsStrip)
+    active_index: bpy.props.IntProperty(default=0)
+
+
+class RENDER_UL_render_strip_list(bpy.types.UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
+        item.draw_list_item(context, layout)
 
 
 class RENDER_PT_render_strip(bpy.types.Panel):
@@ -167,14 +179,21 @@ class RENDER_PT_render_strip(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        for strip in context.scene.rs_settings.strips:
-            if not strip.deleted:
-                row = layout.row()
-                strip.draw(strip, row)
-        row = layout.row(align=True)
-        row.operator('rs.newstrip', icon='ADD')
-        row.operator('rs.addcurrentstrip')
         row = layout.row()
+        row.template_list("RENDER_UL_render_strip_list", "", context.scene.rs_settings, "strips", context.scene.rs_settings, "active_index")
+        col = row.column(align=True)
+        col.operator('rs.newstrip', text="", icon='ADD')
+        col.operator('rs.delstrip', text="", icon='REMOVE')
+
+        index = context.scene.rs_settings.active_index
+        strips = context.scene.rs_settings.strips
+
+        if 0<=index and index<len(strips):
+            active_strip = strips[index]
+            active_strip.draw(context, layout.column())
+
+        layout.separator()
+        row = layout.row(align=True)
         row.operator("rs.renderbutton", text='Render')
 
 
@@ -196,19 +215,9 @@ class RENDER_PT_render_strip_settings(bpy.types.Panel):
 
 
 class OBJECT_OT_NewStrip(bpy.types.Operator):
-    """Add a new strip"""
+    """Add strip from current camera, start-end frame"""
     bl_idname = "rs.newstrip"
     bl_label = "New Strip"
-
-    def execute(self, context):
-        strip = context.scene.rs_settings.strips.add()
-        return {'FINISHED'}
-
-
-class OBJECT_OT_AddCurrentStrip(bpy.types.Operator):
-    """Add strip from current camera, start-end frame"""
-    bl_idname = "rs.addcurrentstrip"
-    bl_label = "Add Current Strip"
 
     def execute(self, context):
         strip = context.scene.rs_settings.strips.add()
@@ -216,6 +225,27 @@ class OBJECT_OT_AddCurrentStrip(bpy.types.Operator):
             strip.cam = context.scene.camera.name 
         strip.start = context.scene.frame_start
         strip.end = context.scene.frame_end
+        return {'FINISHED'}
+
+
+class OBJECT_OT_DeleteStrip(bpy.types.Operator):
+    """Delete the selected strip"""
+    bl_idname = "rs.delstrip"
+    bl_label = "Delete Strip"
+
+    @classmethod
+    def poll(cls, context):
+        index = context.scene.rs_settings.active_index
+        strips = context.scene.rs_settings.strips
+
+        return 0<=index and index<len(strips)
+
+    def execute(self, context):
+        index = context.scene.rs_settings.active_index
+        strips = context.scene.rs_settings.strips
+        strip = context.scene.rs_settings.strips.remove(context.scene.rs_settings.active_index)
+        if index==len(strips):
+            context.scene.rs_settings.active_index = index-1
         return {'FINISHED'}
 
 
