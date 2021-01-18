@@ -248,18 +248,15 @@ class RENDER_PT_render_strip(bpy.types.Panel):
 
         row = layout.row()
         row.template_list("RENDER_UL_render_strip_list", "", context.scene.rs_settings, "strips", context.scene.rs_settings, "active_index")
-        col = row.column()
-        sub = col.column(align=True)
-        sub.operator('rs.newstrip', text="", icon='ADD')
-        sub.operator('rs.delstrip', text="", icon='REMOVE')
-        sub = col.column(align=True)
-        sub.operator('rs.playstrip', text="", icon='PLAY')
-        sub = col.column(align=True)
-        sub.operator('rs.applyrendersettings', text="", icon='SETTINGS')
-        sub = col.column(align=True)
-        sub.operator('rs.copyrendersettings', text="", icon='TRIA_DOWN_BAR')
-        # sub = col.column(align=True)
-        # sub.operator('rs.renderstrip', text="", icon='RENDER_ANIMATION')
+        col = row.column(align=True)
+        col.operator('rs.newstrip', text="", icon='ADD')
+        col.operator('rs.delstrip', text="", icon='REMOVE')
+        
+        col.separator()
+        col.operator('rs.playstrip', text="", icon='PLAY')
+
+        col.separator()
+        col.menu('OBJECT_MT_RenderSettingsMenu', text="", icon='DOWNARROW_HLT')
 
         row = layout.row()
         row.operator('rs.renderstrip', text="Render")
@@ -416,6 +413,17 @@ class OBJECT_OT_ApplyRenderSettings(bpy.types.Operator):
         else:
             ShowMessageBox(icon="ERROR", message="Strip doesn't have custom render settings")
             return {'CANCELLED'}
+
+
+class OBJECT_MT_RenderSettingsMenu(bpy.types.Menu):
+    bl_idname = "OBJECT_MT_RenderSettingsMenu"
+    bl_label = "Render settings menu"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("rs.copyrendersettings")
+        layout.operator("rs.applyrendersettings")
 
 
 class OBJECT_OT_RenderStrip(bpy.types.Operator):
