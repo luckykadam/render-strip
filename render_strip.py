@@ -25,7 +25,13 @@ class RenderStripOperator(bpy.types.Operator):
     frame_start = None
     frame_end = None
     path = None
-    separate_dir = None
+    render_engine = None
+    samples = None
+    resolution_x = None
+    resolution_y = None
+    resolution_percentage = None
+    pixel_aspect_x = None
+    pixel_aspect_y = None
 
     def _init(self, dummy, thrd = None):
         self.rendering = True
@@ -48,7 +54,7 @@ class RenderStripOperator(bpy.types.Operator):
             if not all(strip.name for strip in active_strips):
                 raise Exception("Invalid Name in strips!")
             self.strips = OrderedDict({
-                strip.name: (strip.cam, strip.start,strip.end)
+                strip.name: strip
                 for strip in active_strips
             })
 
@@ -59,7 +65,16 @@ class RenderStripOperator(bpy.types.Operator):
             self.frame_start = scene.frame_start
             self.frame_end = scene.frame_end
             self.path = scene.render.filepath
-            self.separate_dir = scene.rs_settings.separate_dir
+            self.render_engine = scene.render.engine
+            if scene.render.engine=="BLENDER_EEVEE":
+                self.samples = scene.eevee.taa_render_samples
+            elif scene.render.engine=="CYCLES":
+                self.samples = scene.cycles.samples
+            self.resolution_x = scene.render.resolution_x
+            self.resolution_y = scene.render.resolution_y
+            self.resolution_percentage = scene.render.resolution_percentage
+            self.pixel_aspect_x = scene.render.pixel_aspect_x
+            self.pixel_aspect_y = scene.render.pixel_aspect_y
 
             bpy.app.handlers.render_init.append(self._init)
             bpy.app.handlers.render_complete.append(self._complete)
@@ -73,6 +88,26 @@ class RenderStripOperator(bpy.types.Operator):
             ShowMessageBox(icon="ERROR", message=str(e))
             return {"CANCELLED"}
 
+
+    def apply_render_settings(self, render_engine,samples,resolution_x,resolution_y,resolution_percentage,pixel_aspect_x,pixel_aspect_y):
+        bpy.context.scene.render.engine = render_engine
+        if render_engine=="BLENDER_EEVEE":
+            bpy.context.scene.eevee.taa_render_samples = samples
+        elif render_engine=="CYCLES":
+            bpy.context.scene.cycles.samples = samples
+        bpy.context.scene.render.resolution_x = resolution_x
+        bpy.context.scene.render.resolution_y = resolution_y
+        bpy.context.scene.render.resolution_percentage = resolution_percentage
+        bpy.context.scene.render.pixel_aspect_x = pixel_aspect_x
+        bpy.context.scene.render.pixel_aspect_y = pixel_aspect_y
+
+    def apply_default_render_settings(self):
+        self.apply_render_settings(self.render_engine,self.samples,self.resolution_x,self.resolution_y,self.resolution_percentage,self.pixel_aspect_x,self.pixel_aspect_y)
+
+    def apply_strip_render_settings(self, strip):
+        self.apply_render_settings(strip.render_engine,strip.samples,strip.resolution_x,strip.resolution_y,strip.resolution_percentage,strip.pixel_aspect_x,strip.pixel_aspect_y)
+
+
     def modal(self, context, event):
         if event.type == 'TIMER':
             if self.stop or not self.strips:
@@ -85,16 +120,22 @@ class RenderStripOperator(bpy.types.Operator):
                 bpy.context.scene.frame_start = self.frame_start
                 bpy.context.scene.frame_end = self.frame_end
                 bpy.context.scene.render.filepath = self.path
-                return {"FINISHED"} 
+                self.apply_default_render_settings()
+                return {"FINISHED"}
 
             elif self.rendering is False:
-                path,(cam, frame_start, frame_end) = list(self.strips.items())[0]
+                path,strip = list(self.strips.items())[0]
                 sc = bpy.context.scene
-                sc.camera = bpy.data.objects[cam]
-                sc.frame_start = frame_start
-                sc.frame_end = frame_end
+                sc.camera = bpy.data.objects[strip.cam]
+                sc.frame_start = strip.start
+                sc.frame_end = strip.end
                 sc.render.filepath = self.path + path
-                sc.render.filepath += "/" if self.separate_dir else "."
+                sc.render.filepath += "/" if sc.rs_settings.separate_dir else "."
+                print("path: {}, {}".format(sc.render.filepath, path))
+                if strip.custom_render:
+                    self.apply_strip_render_settings(strip)
+                else:
+                    self.apply_default_render_settings()
                 bpy.ops.render.render("INVOKE_DEFAULT", animation=True)
 
         return {"PASS_THROUGH"}
@@ -106,6 +147,10 @@ def get_cameras(self, context):
         if object.type == "CAMERA":
             cameras.append(object)
     return [(cam.name, cam.name, cam.name) for cam in cameras]
+
+def get_render_engines(self, context):
+    # return [("BLENDER_EEVEE","Eevee","Eevee"), ("BLENDER_WORKBENCH","Workbench","Workbench"), ("CYCLES","Cycles","Cycles")]
+    return [("BLENDER_EEVEE","Eevee","Eevee"), ("CYCLES","Cycles","Cycles")]
 
 
 class RsStrip(bpy.types.PropertyGroup):
@@ -132,15 +177,48 @@ class RsStrip(bpy.types.PropertyGroup):
     start: bpy.props.IntProperty(name="Start Frame", get=get_start, set=set_start, min=1)
     end: bpy.props.IntProperty(name="End Frame", get=get_end, set=set_end, min=1)
 
+    # render settings
+    custom_render: bpy.props.BoolProperty(name="Custom Render settings", default=False)
+    render_engine: bpy.props.EnumProperty(name="Render Engine", items=get_render_engines)
+    samples: bpy.props.IntProperty(name="Samples", default=128, min=1)
+    resolution_x: bpy.props.IntProperty(name="Resolution X", default=1920, min=4, subtype="PIXEL")
+    resolution_y: bpy.props.IntProperty(name="Resolution Y", default=1080, min=4, subtype="PIXEL")
+    resolution_percentage: bpy.props.FloatProperty(name="Resolution %", default=100, min=1, max=100, subtype="PERCENTAGE")
+    pixel_aspect_x: bpy.props.FloatProperty(name="Aspect X", default=1, min=1, max=200)
+    pixel_aspect_y: bpy.props.FloatProperty(name="Aspect Y", default=1, min=1, max=200)
+
+
     def draw(self, context, layout):
         row = layout.row()
-    
+
         cam_field = row.row(align=True)
         cam_field.prop(self, 'cam', text="")
         cam_field.scale_x = 2
         frame_field = row.row(align=True)
         frame_field.prop(self, 'start', text="")
         frame_field.prop(self, 'end', text="")
+        layout.separator()
+
+        row = layout.row()
+        row.prop(self, 'custom_render')
+
+        if self.custom_render:
+            col = layout.column()
+            col.use_property_split = True
+            col.use_property_decorate = False
+
+            col.prop(self, 'render_engine')
+            col.prop(self, 'samples')
+            
+            subcol = col.column(align=True)
+            subcol.prop(self, "resolution_x", text="Resolution X")
+            subcol.prop(self, "resolution_y", text="Y")
+            subcol.prop(self, "resolution_percentage", text="%")
+
+            subcol = col.column(align=True)
+            subcol.prop(self, "pixel_aspect_x", text="Aspect X")
+            subcol.prop(self, "pixel_aspect_y", text="Y")
+
 
     def draw_list_item(self, context, layout):
         row = layout.row(align=True)
