@@ -248,7 +248,11 @@ class RsSettings(bpy.types.PropertyGroup):
 
 class RENDER_UL_render_strip_list(bpy.types.UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname):
-        item.draw_list_item(context, layout)
+        if self.layout_type in {"DEFAULT", "COMPACT"}:
+            item.draw_list_item(context, layout)
+        elif self.layout_type == "GRID":
+            layout.alignment = "CENTER"
+            layout.label(text="", icon_value="RENDER_ANIMATION")
 
 
 class RENDER_PT_render_strip(bpy.types.Panel):
@@ -261,7 +265,7 @@ class RENDER_PT_render_strip(bpy.types.Panel):
         layout = self.layout
 
         row = layout.row()
-        row.template_list("RENDER_UL_render_strip_list", "", context.scene.rs_settings, "strips", context.scene.rs_settings, "active_index")
+        row.template_list("RENDER_UL_render_strip_list", "", context.scene.rs_settings, "strips", context.scene.rs_settings, "active_index", rows=4 if len(context.scene.rs_settings.strips)>0 else 2)
         col = row.column(align=True)
         col.operator('rs.newstrip', text="", icon='ADD')
         col.operator('rs.delstrip', text="", icon='REMOVE')
@@ -371,7 +375,8 @@ class OBJECT_OT_PlayStrip(bpy.types.Operator):
             sc.frame_current = strip.start
             return {'FINISHED'}
         else:
-            return {'CANELLED'}
+            ShowMessageBox(icon="ERROR", message="Strip doesn't have a camera attached")
+            return {'CANCELLED'}
 
 
 class OBJECT_OT_CopyRenderSettings(bpy.types.Operator):
