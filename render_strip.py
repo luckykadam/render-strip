@@ -256,6 +256,8 @@ class RENDER_PT_render_strip(bpy.types.Panel):
         sub.operator('rs.playstrip', text="", icon='PLAY')
         sub = col.column(align=True)
         sub.operator('rs.applyrendersettings', text="", icon='SETTINGS')
+        sub = col.column(align=True)
+        sub.operator('rs.copyrendersettings', text="", icon='TRIA_DOWN_BAR')
         # sub = col.column(align=True)
         # sub.operator('rs.renderstrip', text="", icon='RENDER_ANIMATION')
 
@@ -358,6 +360,39 @@ class OBJECT_OT_PlayStrip(bpy.types.Operator):
             return {'FINISHED'}
         else:
             return {'CANELLED'}
+
+
+class OBJECT_OT_CopyRenderSettings(bpy.types.Operator):
+    """Copy render settings from scene to strip"""
+    bl_idname = "rs.copyrendersettings"
+    bl_label = "Copy render settings"
+
+    @classmethod
+    def poll(cls, context):
+        index = context.scene.rs_settings.active_index
+        strips = context.scene.rs_settings.strips
+        return 0<=index and index<len(strips)
+
+    def execute(self, context):
+        index = context.scene.rs_settings.active_index
+        strips = context.scene.rs_settings.strips
+        strip = strips[index]
+        if strip.custom_render:
+            scene = bpy.context.scene
+            strip.render_engine = scene.render.engine
+            if scene.render.engine=="BLENDER_EEVEE":
+                strip.samples = scene.eevee.taa_render_samples
+            elif scene.render.engine=="CYCLES":
+                strip.samples = scene.cycles.samples
+            strip.resolution_x = scene.render.resolution_x
+            strip.resolution_y = scene.render.resolution_y
+            strip.resolution_percentage = scene.render.resolution_percentage
+            strip.pixel_aspect_x = scene.render.pixel_aspect_x
+            strip.pixel_aspect_y = scene.render.pixel_aspect_y
+            return {'FINISHED'}
+        else:
+            ShowMessageBox(icon="ERROR", message="Strip doesn't have custom render settings")
+            return {'CANCELLED'}
 
 
 class OBJECT_OT_ApplyRenderSettings(bpy.types.Operator):
