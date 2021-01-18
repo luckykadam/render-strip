@@ -23,6 +23,20 @@ def apply_render_settings(render_engine,samples,resolution_x,resolution_y,resolu
     bpy.context.scene.render.pixel_aspect_y = pixel_aspect_y
 
 
+def copy_render_settings(strip):
+    scene = bpy.context.scene
+    strip.render_engine = scene.render.engine
+    if scene.render.engine=="BLENDER_EEVEE":
+        strip.samples = scene.eevee.taa_render_samples
+    elif scene.render.engine=="CYCLES":
+        strip.samples = scene.cycles.samples
+    strip.resolution_x = scene.render.resolution_x
+    strip.resolution_y = scene.render.resolution_y
+    strip.resolution_percentage = scene.render.resolution_percentage
+    strip.pixel_aspect_x = scene.render.pixel_aspect_x
+    strip.pixel_aspect_y = scene.render.pixel_aspect_y
+
+
 class RenderStripOperator(bpy.types.Operator):
     """Render all strips"""
     bl_idname = "render.renderstrip"
@@ -307,9 +321,10 @@ class OBJECT_OT_NewStrip(bpy.types.Operator):
         strip = context.scene.rs_settings.strips.add()
         context.scene.rs_settings.active_index = len(context.scene.rs_settings.strips)-1
         if context.scene.camera:
-            strip.cam = context.scene.camera.name 
+            strip.cam = context.scene.camera.name
         strip.start = context.scene.frame_start
         strip.end = context.scene.frame_end
+        copy_render_settings(strip)
         return {'FINISHED'}
 
 
@@ -375,17 +390,7 @@ class OBJECT_OT_CopyRenderSettings(bpy.types.Operator):
         strips = context.scene.rs_settings.strips
         strip = strips[index]
         if strip.custom_render:
-            scene = bpy.context.scene
-            strip.render_engine = scene.render.engine
-            if scene.render.engine=="BLENDER_EEVEE":
-                strip.samples = scene.eevee.taa_render_samples
-            elif scene.render.engine=="CYCLES":
-                strip.samples = scene.cycles.samples
-            strip.resolution_x = scene.render.resolution_x
-            strip.resolution_y = scene.render.resolution_y
-            strip.resolution_percentage = scene.render.resolution_percentage
-            strip.pixel_aspect_x = scene.render.pixel_aspect_x
-            strip.pixel_aspect_y = scene.render.pixel_aspect_y
+            copy_render_settings(strip)
             return {'FINISHED'}
         else:
             ShowMessageBox(icon="ERROR", message="Strip doesn't have custom render settings")
