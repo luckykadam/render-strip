@@ -1,7 +1,7 @@
 import bpy
 from bpy.utils import register_class, unregister_class
 
-from .render_strip import RenderStripOperator, RsStrip, RsSettings, RENDER_UL_render_strip_list, RENDER_PT_render_strip, RENDER_PT_render_strip_detail, RENDER_PT_render_strip_settings, OBJECT_OT_NewStrip, OBJECT_OT_DeleteStrip, OBJECT_OT_PlayStrip, OBJECT_OT_RenderStrip
+from .render_strip import RenderStripOperator, RsStrip, RsSettings, RENDER_UL_render_strip_list, RENDER_PT_render_strip, RENDER_PT_render_strip_detail, RENDER_PT_render_strip_settings, OBJECT_OT_NewStrip, OBJECT_OT_DeleteStrip, OBJECT_OT_PlayStrip, OBJECT_OT_ApplyRenderSettings, OBJECT_OT_RenderStrip
 
 bl_info = {
     "name": "Render Strip",
@@ -12,7 +12,7 @@ bl_info = {
     "description" : "Render camera strips",
 }
 
-classes = [RenderStripOperator, RsStrip, RsSettings, RENDER_UL_render_strip_list, RENDER_PT_render_strip, RENDER_PT_render_strip_detail, RENDER_PT_render_strip_settings, OBJECT_OT_NewStrip, OBJECT_OT_DeleteStrip, OBJECT_OT_PlayStrip, OBJECT_OT_RenderStrip]
+classes = [RenderStripOperator, RsStrip, RsSettings, RENDER_UL_render_strip_list, RENDER_PT_render_strip, RENDER_PT_render_strip_detail, RENDER_PT_render_strip_settings, OBJECT_OT_NewStrip, OBJECT_OT_DeleteStrip, OBJECT_OT_PlayStrip, OBJECT_OT_ApplyRenderSettings, OBJECT_OT_RenderStrip]
 
 def menu_func(self, context):
     self.layout.operator(OBJECT_OT_RenderStrip.bl_idname, icon="RENDER_ANIMATION")

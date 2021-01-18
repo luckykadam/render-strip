@@ -10,6 +10,19 @@ def ShowMessageBox(message = "", title = "Message Box", icon = 'INFO'):
     bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
 
 
+def apply_render_settings(render_engine,samples,resolution_x,resolution_y,resolution_percentage,pixel_aspect_x,pixel_aspect_y):
+    bpy.context.scene.render.engine = render_engine
+    if render_engine=="BLENDER_EEVEE":
+        bpy.context.scene.eevee.taa_render_samples = samples
+    elif render_engine=="CYCLES":
+        bpy.context.scene.cycles.samples = samples
+    bpy.context.scene.render.resolution_x = resolution_x
+    bpy.context.scene.render.resolution_y = resolution_y
+    bpy.context.scene.render.resolution_percentage = resolution_percentage
+    bpy.context.scene.render.pixel_aspect_x = pixel_aspect_x
+    bpy.context.scene.render.pixel_aspect_y = pixel_aspect_y
+
+
 class RenderStripOperator(bpy.types.Operator):
     """Render all strips"""
     bl_idname = "render.renderstrip"
@@ -88,25 +101,11 @@ class RenderStripOperator(bpy.types.Operator):
             ShowMessageBox(icon="ERROR", message=str(e))
             return {"CANCELLED"}
 
-
-    def apply_render_settings(self, render_engine,samples,resolution_x,resolution_y,resolution_percentage,pixel_aspect_x,pixel_aspect_y):
-        bpy.context.scene.render.engine = render_engine
-        if render_engine=="BLENDER_EEVEE":
-            bpy.context.scene.eevee.taa_render_samples = samples
-        elif render_engine=="CYCLES":
-            bpy.context.scene.cycles.samples = samples
-        bpy.context.scene.render.resolution_x = resolution_x
-        bpy.context.scene.render.resolution_y = resolution_y
-        bpy.context.scene.render.resolution_percentage = resolution_percentage
-        bpy.context.scene.render.pixel_aspect_x = pixel_aspect_x
-        bpy.context.scene.render.pixel_aspect_y = pixel_aspect_y
-
     def apply_default_render_settings(self):
-        self.apply_render_settings(self.render_engine,self.samples,self.resolution_x,self.resolution_y,self.resolution_percentage,self.pixel_aspect_x,self.pixel_aspect_y)
+        apply_render_settings(self.render_engine,self.samples,self.resolution_x,self.resolution_y,self.resolution_percentage,self.pixel_aspect_x,self.pixel_aspect_y)
 
     def apply_strip_render_settings(self, strip):
-        self.apply_render_settings(strip.render_engine,strip.samples,strip.resolution_x,strip.resolution_y,strip.resolution_percentage,strip.pixel_aspect_x,strip.pixel_aspect_y)
-
+        apply_render_settings(strip.render_engine,strip.samples,strip.resolution_x,strip.resolution_y,strip.resolution_percentage,strip.pixel_aspect_x,strip.pixel_aspect_y)
 
     def modal(self, context, event):
         if event.type == 'TIMER':
@@ -131,7 +130,6 @@ class RenderStripOperator(bpy.types.Operator):
                 sc.frame_end = strip.end
                 sc.render.filepath = self.path + path
                 sc.render.filepath += "/" if sc.rs_settings.separate_dir else "."
-                print("path: {}, {}".format(sc.render.filepath, path))
                 if strip.custom_render:
                     self.apply_strip_render_settings(strip)
                 else:
@@ -256,6 +254,8 @@ class RENDER_PT_render_strip(bpy.types.Panel):
         sub.operator('rs.delstrip', text="", icon='REMOVE')
         sub = col.column(align=True)
         sub.operator('rs.playstrip', text="", icon='PLAY')
+        sub = col.column(align=True)
+        sub.operator('rs.applyrendersettings', text="", icon='SETTINGS')
         # sub = col.column(align=True)
         # sub.operator('rs.renderstrip', text="", icon='RENDER_ANIMATION')
 
@@ -360,6 +360,29 @@ class OBJECT_OT_PlayStrip(bpy.types.Operator):
             return {'CANELLED'}
 
 
+class OBJECT_OT_ApplyRenderSettings(bpy.types.Operator):
+    """Apply strip's render settings to scene"""
+    bl_idname = "rs.applyrendersettings"
+    bl_label = "Apply render settings"
+
+    @classmethod
+    def poll(cls, context):
+        index = context.scene.rs_settings.active_index
+        strips = context.scene.rs_settings.strips
+        return 0<=index and index<len(strips)
+
+    def execute(self, context):
+        index = context.scene.rs_settings.active_index
+        strips = context.scene.rs_settings.strips
+        strip = strips[index]
+        if strip.custom_render:
+            apply_render_settings(strip.render_engine,strip.samples,strip.resolution_x,strip.resolution_y,strip.resolution_percentage,strip.pixel_aspect_x,strip.pixel_aspect_y)
+            return {'FINISHED'}
+        else:
+            ShowMessageBox(icon="ERROR", message="Strip doesn't have custom render settings")
+            return {'CANCELLED'}
+
+
 class OBJECT_OT_RenderStrip(bpy.types.Operator):
     """Render all enabled strips"""
     bl_idname = "rs.renderstrip"
@@ -368,7 +391,7 @@ class OBJECT_OT_RenderStrip(bpy.types.Operator):
     def execute(self, context):
         if bpy.context.scene.render.filepath is None or len(bpy.context.scene.render.filepath)<1:
             ShowMessageBox(icon="ERROR", message="Output path not defined. Please, define the output path on the render settings panel")
-            return {"FINISHED"}
+            return {"CANCELLED"}
 
         bpy.ops.render.renderstrip()
         return{'FINISHED'}
