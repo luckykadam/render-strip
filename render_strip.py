@@ -45,10 +45,10 @@ class RenderStripOperator(bpy.types.Operator):
             active_strips = [strip for strip in scene.rs_settings.strips if strip.enabled]
             if any(strip.cam not in scene.objects or scene.objects[strip.cam].type != "CAMERA" for strip in active_strips):
                 raise Exception("Invalid Camera in strips!")
-            if not all(strip.name for strip in active_strips if strip.named):
-                raise Exception("Invalid Name in named strips!")
+            if not all(strip.name for strip in active_strips):
+                raise Exception("Invalid Name in strips!")
             self.strips = OrderedDict({
-                strip.get_name(): (strip.cam, strip.start,strip.end)
+                strip.name: (strip.cam, strip.start,strip.end)
                 for strip in active_strips
             })
 
@@ -127,35 +127,25 @@ class RsStrip(bpy.types.PropertyGroup):
             self.set_start(self["end"])
 
     enabled: bpy.props.BoolProperty(name="Enable", default=True)
-    named: bpy.props.BoolProperty(name="Custom Name", default=False)
     name: bpy.props.StringProperty(name="Name", default="strip")
     cam: bpy.props.EnumProperty(name="Camera", items=get_cameras)
     start: bpy.props.IntProperty(name="Start Frame", get=get_start, set=set_start, min=1)
     end: bpy.props.IntProperty(name="End Frame", get=get_end, set=set_end, min=1)
 
-    def get_name(self):
-        return self.name if self.named else "{}.{}-{}".format(self.cam,self.start,self.end)
-
     def draw(self, context, layout):
-        layout.use_property_split = True
-        layout.use_property_decorate = False
-
-        # custom name
-        row = layout.row(align=True, heading="Custom Name")
-        sub = row.row(align=True)
-        sub.prop(self, "named", text="")
-        subsub = sub.row(align=True)
-        subsub.active = self.named
-        subsub.prop(self, "name", text="")
-
-        layout.prop(self, 'cam')
-        layout.prop(self, 'start')
-        layout.prop(self, 'end')
+        row = layout.row()
+    
+        cam_field = row.row(align=True)
+        cam_field.prop(self, 'cam', text="")
+        cam_field.scale_x = 2
+        frame_field = row.row(align=True)
+        frame_field.prop(self, 'start', text="")
+        frame_field.prop(self, 'end', text="")
 
     def draw_list_item(self, context, layout):
         row = layout.row(align=True)
         row.prop(self, 'enabled', text="")
-        row.label(text=self.get_name())
+        row.prop(self, 'name', text="", emboss=False)
         row.label(text=self.cam)
         row.label(text="{}-{}".format(self.start,self.end))
 
