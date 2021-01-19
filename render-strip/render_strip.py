@@ -327,6 +327,9 @@ class OBJECT_OT_NewStrip(bpy.types.Operator):
     bl_label = "New Strip"
 
     def execute(self, context):
+        if context.scene.render.engine not in ["BLENDER_EEVEE", "CYCLES"]:
+            ShowMessageBox(icon="ERROR", message="Unsupported engine: {}. Only Eevee and Cycles are supported".format(context.scene.render.engine))
+            return {'CANCELLED'}
         strip = context.scene.rs_settings.strips.add()
         context.scene.rs_settings.active_index = len(context.scene.rs_settings.strips)-1
         if context.scene.camera:
@@ -396,6 +399,9 @@ class OBJECT_OT_CopyRenderSettings(bpy.types.Operator):
         return 0<=index and index<len(strips)
 
     def execute(self, context):
+        if context.scene.render.engine not in ["BLENDER_EEVEE", "CYCLES"]:
+            ShowMessageBox(icon="ERROR", message="Unsupported engine: {}. Only Eevee and Cycles are supported".format(context.scene.render.engine))
+            return {'CANCELLED'}
         index = context.scene.rs_settings.active_index
         strips = context.scene.rs_settings.strips
         strip = strips[index]
