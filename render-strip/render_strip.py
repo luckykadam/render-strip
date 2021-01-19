@@ -215,6 +215,11 @@ class RsStrip(bpy.types.PropertyGroup):
         row.prop(self, 'custom_render')
 
         if self.custom_render:
+            # row = layout.row(align=True)
+            # row.operator("rs.copyrendersettings", icon="TRIA_DOWN_BAR")
+            # row.operator("rs.applyrendersettings", icon="TRIA_UP_BAR")
+            # layout.separator()
+
             col = layout.column()
             col.use_property_split = True
             col.use_property_decorate = False
@@ -432,8 +437,8 @@ class OBJECT_MT_RenderSettingsMenu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("rs.copyrendersettings")
-        layout.operator("rs.applyrendersettings")
+        layout.operator("rs.copyrendersettings", icon="TRIA_DOWN_BAR")
+        layout.operator("rs.applyrendersettings", icon="TRIA_UP_BAR")
 
 
 class OBJECT_OT_RenderStrip(bpy.types.Operator):
