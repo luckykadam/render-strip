@@ -1,6 +1,7 @@
 import bpy
 import os
 from collections import OrderedDict
+import re
 
 def ShowMessageBox(message = "", title = "Message Box", icon = 'INFO'):
 
@@ -182,9 +183,28 @@ class RsStrip(bpy.types.PropertyGroup):
         self["end"] = value
         if self["end"] < self.get_start():
             self.set_start(self["end"])
+    
+    def get_name(self):
+        return self.get("name", "Strip")
+
+    def set_name(self, value):
+        strips = { strip.name: strip for strip in bpy.context.scene.rs_settings.strips if strip.as_pointer() != self.as_pointer()}
+        if value not in strips:
+            self["name"] = value
+        else:
+            old_strip = strips[value]
+            # next free name
+            strip_trailing_number = lambda s: s[:-4] if re.search(r'\.(\d{3})$', s) else s
+            base_name = strip_trailing_number(value)
+            value = base_name
+            count = 1
+            while value in strips:
+                value = "%s.%03d" % (base_name, count)
+                count += 1
+            self["name"] = value
 
     enabled: bpy.props.BoolProperty(name="Enable", default=True)
-    name: bpy.props.StringProperty(name="Name", default="strip")
+    name: bpy.props.StringProperty(name="Name", get=get_name, set=set_name)
     cam: bpy.props.EnumProperty(name="Camera", items=get_cameras)
     start: bpy.props.IntProperty(name="Start Frame", get=get_start, set=set_start, min=1)
     end: bpy.props.IntProperty(name="End Frame", get=get_end, set=set_end, min=1)
@@ -332,6 +352,7 @@ class OBJECT_OT_NewStrip(bpy.types.Operator):
             return {'CANCELLED'}
         strip = context.scene.rs_settings.strips.add()
         context.scene.rs_settings.active_index = len(context.scene.rs_settings.strips)-1
+        strip.name = "Strip"
         if context.scene.camera:
             strip.cam = context.scene.camera.name
         strip.start = context.scene.frame_start
