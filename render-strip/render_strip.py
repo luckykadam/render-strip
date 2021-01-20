@@ -235,10 +235,8 @@ class RsStrip(bpy.types.PropertyGroup):
         row.prop(self, 'custom_render')
 
         if self.custom_render:
-            # row = layout.row(align=True)
-            # row.operator("rs.copyrendersettings", icon="TRIA_DOWN_BAR")
-            # row.operator("rs.applyrendersettings", icon="TRIA_UP_BAR")
-            # layout.separator()
+            row.menu('OBJECT_MT_RenderSettingsMenu', text="options", icon='PREFERENCES')
+            layout.separator()
 
             col = layout.column()
             col.use_property_split = True
