@@ -1,5 +1,5 @@
 # Render Strip
-**Blender addon to manage animations strips.**
+**Blender addon to manage animation strips.**
 
 Author: [Lucky Kadam](https://twitter.com/luckykadam94)
 
