@@ -12,22 +12,26 @@ Author: [Lucky Kadam](https://twitter.com/luckykadam94)
 
 <img width=640 src="images/installation.png">
 
-You should now see Render Strip tab in Render Properties.
+You should now see Render Strip panel in Render Properties.
 
-<img width=280 src="images/properties.png">
+<img width=380 src="images/properties.png">
 
 ## Usage
 
-1. Create new strip by clicking on New Strip.
-2. Specify the camera, start frame and end frame. (Optionally name the strip by clicking on `pencil` icon).
+1. Create new strip by clicking on "+" button.
+2. Specify the camera, start frame and end frame.
 3. Select the output path.
 4. Hit Render.
 
-<img width=320 src="images/strips.png">
+<img width=360 src="images/strips.png">
 
-5. For more control on ouptut, take a look at output settings sub-panel.
+5. Optionally set custom render settings for the strip.
 
-<img width=280 src="images/output settings.png">
+<img width=360 src="images/render_settings.png">
+
+6. For more control on ouptut, take a look at output settings sub-panel.
+
+<img width=360 src="images/output_settings.png">
 
 ## Resources
 
