@@ -343,6 +343,7 @@ class OBJECT_OT_NewStrip(bpy.types.Operator):
     """Add strip from current camera, start-end frame"""
     bl_idname = "rs.newstrip"
     bl_label = "New Strip"
+    bl_options = {"UNDO"}
 
     def execute(self, context):
         if context.scene.render.engine not in ["BLENDER_EEVEE", "CYCLES"]:
@@ -363,6 +364,7 @@ class OBJECT_OT_DeleteStrip(bpy.types.Operator):
     """Delete the selected strip"""
     bl_idname = "rs.delstrip"
     bl_label = "Delete Strip"
+    bl_options = {"UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -383,6 +385,7 @@ class OBJECT_OT_PlayStrip(bpy.types.Operator):
     """Play the selected strip"""
     bl_idname = "rs.playstrip"
     bl_label = "Play Strip"
+    bl_options = {"UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -410,6 +413,7 @@ class OBJECT_OT_CopyRenderSettings(bpy.types.Operator):
     """Copy render settings from scene to strip"""
     bl_idname = "rs.copyrendersettings"
     bl_label = "Copy render settings"
+    bl_options = {"UNDO"}
 
     @classmethod
     def poll(cls, context):
@@ -436,6 +440,7 @@ class OBJECT_OT_ApplyRenderSettings(bpy.types.Operator):
     """Apply strip's render settings to scene"""
     bl_idname = "rs.applyrendersettings"
     bl_label = "Apply render settings"
+    bl_options = {"UNDO"}
 
     @classmethod
     def poll(cls, context):
