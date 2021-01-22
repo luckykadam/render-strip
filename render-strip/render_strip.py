@@ -296,8 +296,8 @@ class RENDER_PT_render_strip(bpy.types.Panel):
         col.separator()
         col.operator('rs.playstrip', text="", icon='PLAY')
 
-        col.separator()
-        col.menu('OBJECT_MT_RenderSettingsMenu', text="", icon='DOWNARROW_HLT')
+        # col.separator()
+        # col.menu('OBJECT_MT_RenderSettingsMenu', text="", icon='DOWNARROW_HLT')
 
         row = layout.row()
         row.operator('rs.renderstrip', text="Render")
@@ -412,7 +412,7 @@ class OBJECT_OT_PlayStrip(bpy.types.Operator):
 class OBJECT_OT_CopyRenderSettings(bpy.types.Operator):
     """Copy render settings from scene to strip"""
     bl_idname = "rs.copyrendersettings"
-    bl_label = "Copy render settings"
+    bl_label = "Copy render settings to strip"
     bl_options = {"UNDO"}
 
     @classmethod
@@ -439,7 +439,7 @@ class OBJECT_OT_CopyRenderSettings(bpy.types.Operator):
 class OBJECT_OT_ApplyRenderSettings(bpy.types.Operator):
     """Apply strip's render settings to scene"""
     bl_idname = "rs.applyrendersettings"
-    bl_label = "Apply render settings"
+    bl_label = "Apply render settings to scene"
     bl_options = {"UNDO"}
 
     @classmethod
@@ -467,8 +467,8 @@ class OBJECT_MT_RenderSettingsMenu(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("rs.copyrendersettings", icon="TRIA_DOWN_BAR")
-        layout.operator("rs.applyrendersettings", icon="TRIA_UP_BAR")
+        layout.operator("rs.copyrendersettings", text="Copy from scene", icon="TRIA_DOWN_BAR")
+        layout.operator("rs.applyrendersettings", text="Apply to scene", icon="TRIA_UP_BAR")
 
 
 class OBJECT_OT_RenderStrip(bpy.types.Operator):
