@@ -1,5 +1,5 @@
 # Render Strip
-**Render all camera animations in one click.** A minimal add-on for Blender 2.80+
+**Blender addon to manage animation strips.**
 
 Author: [Lucky Kadam](https://twitter.com/luckykadam94)
 
