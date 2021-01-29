@@ -11,12 +11,8 @@ def ShowMessageBox(message = "", title = "Message Box", icon = 'INFO'):
     bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
 
 
-def apply_render_settings(render_engine,samples,resolution_x,resolution_y,resolution_percentage,pixel_aspect_x,pixel_aspect_y):
+def apply_render_settings(render_engine,resolution_x,resolution_y,resolution_percentage,pixel_aspect_x,pixel_aspect_y):
     bpy.context.scene.render.engine = render_engine
-    if render_engine=="BLENDER_EEVEE":
-        bpy.context.scene.eevee.taa_render_samples = samples
-    elif render_engine=="CYCLES":
-        bpy.context.scene.cycles.samples = samples
     bpy.context.scene.render.resolution_x = resolution_x
     bpy.context.scene.render.resolution_y = resolution_y
     bpy.context.scene.render.resolution_percentage = resolution_percentage
@@ -27,10 +23,6 @@ def apply_render_settings(render_engine,samples,resolution_x,resolution_y,resolu
 def copy_render_settings(strip):
     scene = bpy.context.scene
     strip.render_engine = scene.render.engine
-    if scene.render.engine=="BLENDER_EEVEE":
-        strip.samples = scene.eevee.taa_render_samples
-    elif scene.render.engine=="CYCLES":
-        strip.samples = scene.cycles.samples
     strip.resolution_x = scene.render.resolution_x
     strip.resolution_y = scene.render.resolution_y
     strip.resolution_percentage = scene.render.resolution_percentage
@@ -54,7 +46,6 @@ class RenderStripOperator(bpy.types.Operator):
     frame_end = None
     path = None
     render_engine = None
-    samples = None
     resolution_x = None
     resolution_y = None
     resolution_percentage = None
@@ -94,10 +85,6 @@ class RenderStripOperator(bpy.types.Operator):
             self.frame_end = scene.frame_end
             self.path = scene.render.filepath
             self.render_engine = scene.render.engine
-            if scene.render.engine=="BLENDER_EEVEE":
-                self.samples = scene.eevee.taa_render_samples
-            elif scene.render.engine=="CYCLES":
-                self.samples = scene.cycles.samples
             self.resolution_x = scene.render.resolution_x
             self.resolution_y = scene.render.resolution_y
             self.resolution_percentage = scene.render.resolution_percentage
@@ -117,10 +104,10 @@ class RenderStripOperator(bpy.types.Operator):
             return {"CANCELLED"}
 
     def apply_default_render_settings(self):
-        apply_render_settings(self.render_engine,self.samples,self.resolution_x,self.resolution_y,self.resolution_percentage,self.pixel_aspect_x,self.pixel_aspect_y)
+        apply_render_settings(self.render_engine,self.resolution_x,self.resolution_y,self.resolution_percentage,self.pixel_aspect_x,self.pixel_aspect_y)
 
     def apply_strip_render_settings(self, strip):
-        apply_render_settings(strip.render_engine,strip.samples,strip.resolution_x,strip.resolution_y,strip.resolution_percentage,strip.pixel_aspect_x,strip.pixel_aspect_y)
+        apply_render_settings(strip.render_engine,strip.resolution_x,strip.resolution_y,strip.resolution_percentage,strip.pixel_aspect_x,strip.pixel_aspect_y)
 
     def modal(self, context, event):
         if event.type == 'TIMER':
@@ -162,8 +149,8 @@ def get_cameras(self, context):
     return [(cam.name, cam.name, cam.name) for cam in cameras]
 
 def get_render_engines(self, context):
-    # return [("BLENDER_EEVEE","Eevee","Eevee"), ("BLENDER_WORKBENCH","Workbench","Workbench"), ("CYCLES","Cycles","Cycles")]
-    return [("BLENDER_EEVEE","Eevee","Eevee"), ("CYCLES","Cycles","Cycles")]
+    return [("BLENDER_EEVEE","Eevee","Eevee"), ("CYCLES","Cycles","Cycles"), ("BLENDER_WORKBENCH","Workbench","Workbench")]
+    # return [("BLENDER_EEVEE","Eevee","Eevee"), ("CYCLES","Cycles","Cycles")]
 
 
 class RsStrip(bpy.types.PropertyGroup):
@@ -212,7 +199,6 @@ class RsStrip(bpy.types.PropertyGroup):
     # render settings
     custom_render: bpy.props.BoolProperty(name="Custom Render settings", default=False)
     render_engine: bpy.props.EnumProperty(name="Render Engine", items=get_render_engines)
-    samples: bpy.props.IntProperty(name="Samples", default=128, min=1)
     resolution_x: bpy.props.IntProperty(name="Resolution X", default=1920, min=4, subtype="PIXEL")
     resolution_y: bpy.props.IntProperty(name="Resolution Y", default=1080, min=4, subtype="PIXEL")
     resolution_percentage: bpy.props.FloatProperty(name="Resolution %", default=100, min=1, max=100, subtype="PERCENTAGE")
@@ -243,7 +229,6 @@ class RsStrip(bpy.types.PropertyGroup):
             col.use_property_decorate = False
 
             col.prop(self, 'render_engine')
-            col.prop(self, 'samples')
             
             subcol = col.column(align=True)
             subcol.prop(self, "resolution_x", text="Resolution X")
@@ -346,8 +331,8 @@ class OBJECT_OT_NewStrip(bpy.types.Operator):
     bl_options = {"UNDO"}
 
     def execute(self, context):
-        if context.scene.render.engine not in ["BLENDER_EEVEE", "CYCLES"]:
-            ShowMessageBox(icon="ERROR", message="Unsupported engine: {}. Only Eevee and Cycles are supported".format(context.scene.render.engine))
+        if context.scene.render.engine not in ["BLENDER_EEVEE", "CYCLES", "BLENDER_WORKBENCH"]:
+            ShowMessageBox(icon="ERROR", message="Unsupported engine: {}. Only Eevee, Cycles and Workbench are supported".format(context.scene.render.engine))
             return {'CANCELLED'}
         strip = context.scene.rs_settings.strips.add()
         context.scene.rs_settings.active_index = len(context.scene.rs_settings.strips)-1
@@ -422,8 +407,8 @@ class OBJECT_OT_CopyRenderSettings(bpy.types.Operator):
         return 0<=index and index<len(strips)
 
     def execute(self, context):
-        if context.scene.render.engine not in ["BLENDER_EEVEE", "CYCLES"]:
-            ShowMessageBox(icon="ERROR", message="Unsupported engine: {}. Only Eevee and Cycles are supported".format(context.scene.render.engine))
+        if context.scene.render.engine not in ["BLENDER_EEVEE", "CYCLES", "BLENDER_WORKBENCH"]:
+            ShowMessageBox(icon="ERROR", message="Unsupported engine: {}. Only Eevee, Cycles and Workbench are supported".format(context.scene.render.engine))
             return {'CANCELLED'}
         index = context.scene.rs_settings.active_index
         strips = context.scene.rs_settings.strips
@@ -453,7 +438,7 @@ class OBJECT_OT_ApplyRenderSettings(bpy.types.Operator):
         strips = context.scene.rs_settings.strips
         strip = strips[index]
         if strip.custom_render:
-            apply_render_settings(strip.render_engine,strip.samples,strip.resolution_x,strip.resolution_y,strip.resolution_percentage,strip.pixel_aspect_x,strip.pixel_aspect_y)
+            apply_render_settings(strip.render_engine,strip.resolution_x,strip.resolution_y,strip.resolution_percentage,strip.pixel_aspect_x,strip.pixel_aspect_y)
             return {'FINISHED'}
         else:
             ShowMessageBox(icon="ERROR", message="Strip doesn't have custom render settings")
