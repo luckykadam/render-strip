@@ -117,16 +117,6 @@ class RenderStripOperator(bpy.types.Operator):
         return {"PASS_THROUGH"}
 
 
-def get_cameras(self, context):
-    cameras = []
-    for object in context.scene.objects:
-        if object.type == "CAMERA":
-            cameras.append(object)
-    return [(cam.name, cam.name, cam.name) for cam in cameras]
-
-def get_render_engines(self, context):
-    return get_available_render_engines()
-
 class RsStrip(bpy.types.PropertyGroup):
 
     def get_start(self):
@@ -155,24 +145,42 @@ class RsStrip(bpy.types.PropertyGroup):
         else:
             old_strip = strips[value]
             # next free name
-            strip_trailing_number = lambda s: s[:-4] if re.search(r'\.(\d{3})$', s) else s
-            base_name = strip_trailing_number(value)
+            def split(x):
+                match = re.search(r'\.(\d+)$', x)
+                if match is None:
+                    return x, None
+                else:
+                    return x[:match.start()],x[match.start()+1:]
+            base_name,number = split(value)
+            if number is None:
+                number = "001"
             value = base_name
             count = 1
             while value in strips:
-                value = "%s.%03d" % (base_name, count)
+                format_str = "{}.{" + ":0>{}".format(len(number)) + "}"
+                value = format_str.format(base_name, count)
                 count += 1
             self["name"] = value
 
+    def list_cameras(self, context):
+        cameras = []
+        for object in context.scene.objects:
+            if object.type == "CAMERA":
+                cameras.append(object)
+        return [(cam.name, cam.name, cam.name) for cam in cameras]
+
+    def list_render_engines(self, context):
+        return get_available_render_engines()
+
     enabled: bpy.props.BoolProperty(name="Enable", default=True)
     name: bpy.props.StringProperty(name="Name", get=get_name, set=set_name)
-    cam: bpy.props.EnumProperty(name="Camera", items=get_cameras)
+    cam: bpy.props.EnumProperty(name="Camera", items=list_cameras)
     start: bpy.props.IntProperty(name="Start Frame", get=get_start, set=set_start, min=1)
     end: bpy.props.IntProperty(name="End Frame", get=get_end, set=set_end, min=1)
 
     # render settings
     custom_render: bpy.props.BoolProperty(name="Custom Render settings", default=False)
-    render_engine: bpy.props.EnumProperty(name="Render Engine", items=get_render_engines)
+    render_engine: bpy.props.EnumProperty(name="Render Engine", items=list_render_engines)
     resolution_x: bpy.props.IntProperty(name="Resolution X", default=1920, min=4, subtype="PIXEL")
     resolution_y: bpy.props.IntProperty(name="Resolution Y", default=1080, min=4, subtype="PIXEL")
     resolution_percentage: bpy.props.FloatProperty(name="Resolution %", default=100, min=1, max=100, subtype="PERCENTAGE")
