@@ -38,6 +38,8 @@ You should now see Render Strip panel in Render Properties.
 * Demonstration video on [Youtube](https://youtu.be/4OC895dGW0g)
 * Support thread on [BlenderArtists](https://blenderartists.org/t/render-strip/1245609)
 
+This project is inspired by [Render Burst](https://github.com/VertStretch/RenderBurst).
+
 ## Feedback
 
 Feel free to report issues or provide feedback on Github.
