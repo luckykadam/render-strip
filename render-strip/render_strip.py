@@ -53,9 +53,10 @@ class RenderStripOperator(bpy.types.Operator):
                 for strip in active_strips
             })
 
-            if len(self.strips) < 0:
-                raise Exception("No strip defined")
-
+            if len(self.strips) == 0:
+                raise Exception("No active strip")
+            if len(self.strips)<len(active_strips):
+                raise Exception("Multiple strip with same name found. Please use unique name")
             self.camera = scene.camera
             self.frame_start = scene.frame_start
             self.frame_end = scene.frame_end
