@@ -3,31 +3,7 @@ import os
 from collections import OrderedDict
 import re
 
-def ShowMessageBox(message = "", title = "Message Box", icon = 'INFO'):
-
-    def draw(self, context):
-        self.layout.label(text=message)
-
-    bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
-
-
-def apply_render_settings(render_engine,resolution_x,resolution_y,resolution_percentage,pixel_aspect_x,pixel_aspect_y):
-    bpy.context.scene.render.engine = render_engine
-    bpy.context.scene.render.resolution_x = resolution_x
-    bpy.context.scene.render.resolution_y = resolution_y
-    bpy.context.scene.render.resolution_percentage = resolution_percentage
-    bpy.context.scene.render.pixel_aspect_x = pixel_aspect_x
-    bpy.context.scene.render.pixel_aspect_y = pixel_aspect_y
-
-
-def copy_render_settings(strip):
-    scene = bpy.context.scene
-    strip.render_engine = scene.render.engine
-    strip.resolution_x = scene.render.resolution_x
-    strip.resolution_y = scene.render.resolution_y
-    strip.resolution_percentage = scene.render.resolution_percentage
-    strip.pixel_aspect_x = scene.render.pixel_aspect_x
-    strip.pixel_aspect_y = scene.render.pixel_aspect_y
+from .utils import apply_render_settings, copy_render_settings, get_available_render_engines, get_available_render_engines_values, ShowMessageBox
 
 
 class RenderStripOperator(bpy.types.Operator):
@@ -149,9 +125,7 @@ def get_cameras(self, context):
     return [(cam.name, cam.name, cam.name) for cam in cameras]
 
 def get_render_engines(self, context):
-    return [("BLENDER_EEVEE","Eevee","Eevee"), ("CYCLES","Cycles","Cycles"), ("BLENDER_WORKBENCH","Workbench","Workbench")]
-    # return [("BLENDER_EEVEE","Eevee","Eevee"), ("CYCLES","Cycles","Cycles")]
-
+    return get_available_render_engines()
 
 class RsStrip(bpy.types.PropertyGroup):
 
@@ -331,8 +305,8 @@ class OBJECT_OT_NewStrip(bpy.types.Operator):
     bl_options = {"UNDO"}
 
     def execute(self, context):
-        if context.scene.render.engine not in ["BLENDER_EEVEE", "CYCLES", "BLENDER_WORKBENCH"]:
-            ShowMessageBox(icon="ERROR", message="Unsupported engine: {}. Only Eevee, Cycles and Workbench are supported".format(context.scene.render.engine))
+        if context.scene.render.engine not in get_available_render_engines_values():
+            ShowMessageBox(icon="ERROR", message="Unknown render engine: {}".format(context.scene.render.engine))
             return {'CANCELLED'}
         strip = context.scene.rs_settings.strips.add()
         context.scene.rs_settings.active_index = len(context.scene.rs_settings.strips)-1
@@ -407,8 +381,8 @@ class OBJECT_OT_CopyRenderSettings(bpy.types.Operator):
         return 0<=index and index<len(strips)
 
     def execute(self, context):
-        if context.scene.render.engine not in ["BLENDER_EEVEE", "CYCLES", "BLENDER_WORKBENCH"]:
-            ShowMessageBox(icon="ERROR", message="Unsupported engine: {}. Only Eevee, Cycles and Workbench are supported".format(context.scene.render.engine))
+        if context.scene.render.engine not in get_available_render_engines_values():
+            ShowMessageBox(icon="ERROR", message="Unknown render engine: {}".format(context.scene.render.engine))
             return {'CANCELLED'}
         index = context.scene.rs_settings.active_index
         strips = context.scene.rs_settings.strips
