@@ -9,3 +9,4 @@
 *.idea
 *.DS_STORE
 /render
+/render-strip
