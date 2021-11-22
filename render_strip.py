@@ -274,7 +274,6 @@ class RENDER_PT_render_strip(bpy.types.Panel):
 class RENDER_PT_render_strip_detail(bpy.types.Panel):
     bl_label = "Strip"
     bl_parent_id = "RENDER_PT_render_strip"
-    bl_options = {'DRAW_BOX'}
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "render"
@@ -293,7 +292,6 @@ class RENDER_PT_render_strip_detail(bpy.types.Panel):
 class RENDER_PT_render_strip_settings(bpy.types.Panel):
     bl_label = "Output Settings"
     bl_parent_id = "RENDER_PT_render_strip"
-    bl_options = {'DEFAULT_CLOSED'}
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "render"
