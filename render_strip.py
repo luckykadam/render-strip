@@ -184,7 +184,7 @@ class RsStrip(bpy.types.PropertyGroup):
     render_engine: bpy.props.EnumProperty(name="Render Engine", items=list_render_engines)
     resolution_x: bpy.props.IntProperty(name="Resolution X", default=1920, min=4, subtype="PIXEL")
     resolution_y: bpy.props.IntProperty(name="Resolution Y", default=1080, min=4, subtype="PIXEL")
-    resolution_percentage: bpy.props.FloatProperty(name="Resolution %", default=100, min=1, max=100, subtype="PERCENTAGE")
+    resolution_percentage: bpy.props.IntProperty(name="Resolution %", default=100, min=1, max=100, subtype="PERCENTAGE")
     pixel_aspect_x: bpy.props.FloatProperty(name="Aspect X", default=1, min=1, max=200)
     pixel_aspect_y: bpy.props.FloatProperty(name="Aspect Y", default=1, min=1, max=200)
 

@@ -8,7 +8,7 @@ bl_info = {
     "category": "Render",
     "blender": (2, 80, 0),
     "author" : "Lucky Kadam <luckykadam94@gmail.com>",
-    "version" : (1, 0, 0),
+    "version" : (1, 0, 2),
     "description" : "Render camera strips",
 }
 
