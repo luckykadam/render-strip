@@ -19,7 +19,7 @@ def copy_render_settings(strip):
 
 def get_available_render_engines():
     internal_engines = [("BLENDER_EEVEE","Eevee","Eevee"), ("BLENDER_WORKBENCH","Workbench","Workbench")]
-    external_engines = set((e.bl_idname,e.bl_label,e.bl_label) for e in bpy.types.RenderEngine.__subclasses__())
+    external_engines = set((e.bl_idname,e.bl_label,e.bl_label) for e in bpy.types.RenderEngine.__subclasses__() if hasattr(e, "bl_idname") and hasattr(e, "bl_label"))
     return internal_engines + list(external_engines)
 
 def get_available_render_engines_values():
